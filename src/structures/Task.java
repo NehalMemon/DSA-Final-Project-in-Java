@@ -10,6 +10,7 @@ public class Task {
     }
 
     private int id;
+    private String title;
     private String description;
     private Priority priority;
     private Status status;
@@ -39,6 +40,14 @@ public class Task {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+  
+    public String getTitle() {
+        return this.title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public Priority getPriority() {

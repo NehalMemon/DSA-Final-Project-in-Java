@@ -6,8 +6,6 @@ public class TaskStack {
     Task[] stack;
     int top;
 
-    
-
     public TaskStack(){
         this.stack = new Task[100];
         this.top = -1;

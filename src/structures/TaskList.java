@@ -14,7 +14,8 @@ public class TaskList {
         return head == null;
     }
 
-    public void createTask(int id, String description, Task.Priority priority, Task.Status status, String deadline) {
+    public void createTask(int id, String title, String description, Task.Priority priority, Task.Status status,
+            String deadline) {
         Task newTask = new Task(id, description, priority, status, deadline);
         if (isEmpty()) {
             head = newTask;
@@ -31,13 +32,22 @@ public class TaskList {
         if (isEmpty()) {
             return false;
         }
-        while (head.next.getId() != id) {
+        if (head.getId() == id) {
             head = head.next;
-            if (head == null) {
+            return true;
+        }
+
+        Task current = head;
+        Task prev = null;
+
+        while (current != null && current.getId() != id) {
+            prev = current;
+            current = current.next;
+            if (current == null) {
                 return false;
             }
         }
-        head.next = head.next.next;
+        prev.next = current.next;
         return true;
     }
 
@@ -63,21 +73,21 @@ public class TaskList {
     public void displayTasks() {
         Task current = head;
         while (current != null) {
-            if (current.getStatus() == Task.Status.pending){
+            if (current.getStatus() == Task.Status.pending) {
                 System.out.println("ID: " + current.getId() + ", Description: " + current.getDescription() +
                         ", Priority: " + current.getPriority() + ", Status: " + current.getStatus() +
                         ", Deadline: " + current.getDeadline());
                 current = current.next;
-            }else{
+            } else {
                 current = current.next;
             }
         }
     }
 
-    public int Size(){
+    public int Size() {
         Task current = head;
-        int size=0;
-        while(current != null){
+        int size = 0;
+        while (current != null) {
             current = current.next;
             size++;
         }
