@@ -46,15 +46,11 @@ public class SortingAndSearch {
                 Task.Status.pending,
                 "2025-11-25");
 
-        list.displayTasks();       
+        list.displayTasks();
+    }
+
+    public static void sortByPriority(){
         
-        
-        public static void sortByPriority(){
-
-        }
-
-
-
     }
 
 }

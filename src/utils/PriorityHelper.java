@@ -1,20 +1,19 @@
 package utils;
 
+import structures.Task;
+
+
 public class PriorityHelper {
 
-    public static int PriorityAssign(String priority){
-        if(priority.equalsIgnoreCase("high")){
-            return 1;
+    public static int PriorityAssign(Task task){
+        switch (task.getPriority()){
+            case high:
+                return 1;
+            case medium:
+                return 2;
+            default:
+                return 1;
         }
-
-        if(priority.equalsIgnoreCase("medium")){
-            return 2;
-        }
-
-        if(priority.equalsIgnoreCase("low")){
-            return 3;
-        }
-        return 0;
     }
 }
 

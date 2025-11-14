@@ -1,11 +1,11 @@
 package structures;
 
 public class Task {
-    enum Status {
+    public enum Status {
         pending, completed
     }
 
-    enum Priority {
+    public enum Priority {
         high, medium, low
     }
 
