@@ -4,7 +4,7 @@ import structures.Task;
 
 public class TaskList {
 
-    private Task head;
+    protected Task head;
 
     public TaskList() {
         this.head = null;

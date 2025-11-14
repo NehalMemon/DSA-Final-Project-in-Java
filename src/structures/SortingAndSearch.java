@@ -1,23 +1,25 @@
 package structures;
 
-import structures.TaskList;
-import utils.PriorityHelper;
+import utils.InsertionHelper;
 
-public class SortingAndSearch {
+public class SortingAndSearch extends TaskList {
+
     public static void main(String[] args) {
 
-        TaskList list = new TaskList();
+        SortingAndSearch list = new SortingAndSearch();
+
         list.createTask(
                 2,
                 "Review pull requests",
-                "Check all pending code submissions for quality assurance.", // New: Description
+                "Check all pending code submissions for quality assurance.",
                 Task.Priority.medium,
                 Task.Status.pending,
                 "2025-11-12");
+
         list.createTask(
                 1,
                 "Refactor Database Connection",
-                "Update all deprecated JDBC calls to use modern connection pooling standards.",
+                "Update deprecated JDBC calls to connection pooling.",
                 Task.Priority.high,
                 Task.Status.pending,
                 "2025-11-15");
@@ -25,7 +27,7 @@ public class SortingAndSearch {
         list.createTask(
                 3,
                 "Update Documentation",
-                "Write comprehensive guides for the new API endpoints and internal components.",
+                "Write guides for new API endpoints.",
                 Task.Priority.medium,
                 Task.Status.pending,
                 "2025-11-20");
@@ -33,7 +35,7 @@ public class SortingAndSearch {
         list.createTask(
                 4,
                 "Deploy Hotfix to Production",
-                "Address the critical bug reported in the payment gateway immediately.",
+                "Fix critical payment gateway bug immediately.",
                 Task.Priority.high,
                 Task.Status.pending,
                 "2025-11-13");
@@ -41,16 +43,48 @@ public class SortingAndSearch {
         list.createTask(
                 5,
                 "Team Brainstorming Session",
-                "Schedule and prepare materials for the Q1 project kick-off meeting.",
+                "Prepare materials for Q1 project kickoff.",
                 Task.Priority.low,
                 Task.Status.pending,
                 "2025-11-25");
 
+        System.out.println("\n--- BEFORE SORTING ---");
+        list.displayTasks();
+
+        list.sortByPriority();
+
+        System.out.println("\n--- AFTER SORTING BY PRIORITY ---");
         list.displayTasks();
     }
 
-    public static void sortByPriority(){
-        
-    }
+    // Sorting method
+    public void sortByPriority() {
 
+        Task sorted = null;
+        Task current = head;
+
+        while (current != null) {
+            Task nextNode = current.next;
+            current.next = null;
+            sorted = InsertionHelper.insertByOrder(sorted, current);
+            current = nextNode;
+        }
+
+        this.head = sorted;
+    }
+}
+    public void sortByDeadline() {
+
+        Task sorted = null;
+        Task current = head;
+
+        while (current != null) {
+            Task nextNode = current.next;
+            current.next = null;
+            sorted = InsertionHelper.insertByOrder(sorted, current);
+            current = nextNode;
+        }
+
+        this.head = sorted;
+    }
 }

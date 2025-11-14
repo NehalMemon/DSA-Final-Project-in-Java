@@ -1,9 +1,9 @@
 package ui;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.*;
 
 public class AddTaskForm extends JFrame {
 
@@ -17,57 +17,65 @@ public class AddTaskForm extends JFrame {
     public AddTaskForm() {
 
         setTitle("Add New Task");
-        setSize(500, 600);
+        setSize(480, 620);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setLayout(new GridBagLayout());
+        setLocationRelativeTo(null);
 
-        // Main Panel UI
+        // Main Background
+        getContentPane().setBackground(new Color(20, 20, 20));  // Dark BG
+
+        // Card Panel (Modern Look)
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(12, 1, 8, 8));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panel.setLayout(new GridBagLayout());
+        panel.setBackground(new Color(32, 32, 32)); // Card color
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
-        // Title
-        panel.add(new JLabel("Task Title:"));
-        titleField = new JTextField();
-        panel.add(titleField);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(12, 0, 0, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.weightx = 1;
 
-        // Description
-        panel.add(new JLabel("Task Description:"));
-        descriptionArea = new JTextArea(3, 20);
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-        panel.add(new JScrollPane(descriptionArea));
+        // --- MODERN FONT ---
+        Font font = new Font("Montserrat", Font.PLAIN, 14);
 
-        // Priority
-        panel.add(new JLabel("Priority:"));
-        String[] priorities = {"Low", "Medium", "High"};
-        priorityBox = new JComboBox<>(priorities);
-        panel.add(priorityBox);
+        // Label Style
+        UIManager.put("Label.foreground", new Color(230, 230, 230));
 
-        // Status
-        panel.add(new JLabel("Status:"));
-        String[] statuses = {"To Do", "In Progress", "Done"};
-        statusBox = new JComboBox<>(statuses);
-        panel.add(statusBox);
+        // TextField Style
+        titleField = makeTextField(font);
+        descriptionArea = makeTextArea(font);
+        dueDateField = makeTextField(font);
+        assigneeField = makeTextField(font);
 
-        // Due Date
-        panel.add(new JLabel("Due Date (yyyy-mm-dd):"));
-        dueDateField = new JTextField();
-        panel.add(dueDateField);
+        priorityBox = makeCombo(new String[]{"Low", "Medium", "High"}, font);
+        statusBox = makeCombo(new String[]{"To Do", "In Progress", "Done"}, font);
 
-        // Assigned To
-        panel.add(new JLabel("Assigned To:"));
-        assigneeField = new JTextField();
-        panel.add(assigneeField);
+        // --- Add Components ---
 
-        // Add Button
+        addField(panel, gbc, "Task Title:", titleField, font);
+        addArea(panel, gbc, "Task Description:", descriptionArea, font);
+        addField(panel, gbc, "Priority:", priorityBox, font);
+        addField(panel, gbc, "Status:", statusBox, font);
+        addField(panel, gbc, "Due Date (yyyy-mm-dd):", dueDateField, font);
+        addField(panel, gbc, "Assigned To:", assigneeField, font);
+
+        // Modern Button
         JButton addButton = new JButton("Add Task");
-        panel.add(addButton);
+        addButton.setFont(font);
+        addButton.setBackground(new Color(0, 122, 255));
+        addButton.setForeground(Color.WHITE);
+        addButton.setFocusPainted(false);
+        addButton.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
+        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        gbc.gridy++;
+        panel.add(addButton, gbc);
 
-        add(panel, BorderLayout.CENTER);
+        add(panel);
 
-        // Button Event
-                addButton.addActionListener(new ActionListener() {
+        // Button Action
+        addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
@@ -78,15 +86,14 @@ public class AddTaskForm extends JFrame {
                 String dueDate = dueDateField.getText().trim();
                 String assignee = assigneeField.getText().trim();
 
-                // Basic validation
                 if (title.isEmpty()) {
                     JOptionPane.showMessageDialog(null,
                             "Title is required!",
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                // Save to DB (Placeholder)
                 saveTaskToDatabase(title, desc, priority, status, dueDate, assignee);
 
                 JOptionPane.showMessageDialog(null,
@@ -100,7 +107,58 @@ public class AddTaskForm extends JFrame {
         setVisible(true);
     }
 
-    // Clear UI Fields
+    // --------------------------- UI HELPERS -----------------------------
+
+    private JTextField makeTextField(Font f) {
+        JTextField field = new JTextField();
+        field.setFont(f);
+        field.setBackground(new Color(45, 45, 45));
+        field.setForeground(Color.WHITE);
+        field.setCaretColor(Color.WHITE);
+        field.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 70), 1));
+        return field;
+    }
+
+    private JTextArea makeTextArea(Font f) {
+        JTextArea area = new JTextArea(3, 20);
+        area.setFont(f);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setBackground(new Color(45, 45, 45));
+        area.setForeground(Color.WHITE);
+        area.setCaretColor(Color.WHITE);
+        area.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 70), 1));
+        return area;
+    }
+
+    private JComboBox<String> makeCombo(String[] list, Font f) {
+        JComboBox<String> box = new JComboBox<>(list);
+        box.setFont(f);
+        box.setBackground(new Color(45, 45, 45));
+        box.setForeground(Color.WHITE);
+        return box;
+    }
+
+    private void addField(JPanel panel, GridBagConstraints gbc, String text, JComponent comp, Font f) {
+        JLabel label = new JLabel(text);
+        label.setFont(f);
+        gbc.gridy++;
+        panel.add(label, gbc);
+        gbc.gridy++;
+        panel.add(comp, gbc);
+    }
+
+    private void addArea(JPanel panel, GridBagConstraints gbc, String text, JTextArea area, Font f) {
+        JLabel label = new JLabel(text);
+        label.setFont(f);
+        gbc.gridy++;
+        panel.add(label, gbc);
+        gbc.gridy++;
+        panel.add(new JScrollPane(area), gbc);
+    }
+
+    // ----------------------- FUNCTIONALITY ------------------------
+
     private void clearForm() {
         titleField.setText("");
         descriptionArea.setText("");
@@ -110,17 +168,8 @@ public class AddTaskForm extends JFrame {
         assigneeField.setText("");
     }
 
-    // DB Placeholder Function
     private void saveTaskToDatabase(String title, String desc, String priority,
                                     String status, String dueDate, String assignee) {
-        // TODO: JDBC insert code yahan likhna hai
-        System.out.println("Saving task to DB:");
-        System.out.println("Title: " + title);
-        System.out.println("Priority: " + priority);
-    }
-
-    // Run Form for Testing
-    public static void main(String[] args) {
-        new AddTaskForm();
+        System.out.println("Saving task to DB: " + title);
     }
 }
