@@ -16,7 +16,7 @@ public class TaskList {
 
     public void createTask(int id, String title, String description, Task.Priority priority, Task.Status status,
             String deadline) {
-        Task newTask = new Task(id, description, priority, status, deadline);
+        Task newTask = new Task(id,title, description, priority, status, deadline);
         if (isEmpty()) {
             head = newTask;
         } else {
@@ -77,6 +77,7 @@ public class TaskList {
                 System.out.println("ID: " + current.getId() + ", Description: " + current.getDescription() +
                         ", Priority: " + current.getPriority() + ", Status: " + current.getStatus() +
                         ", Deadline: " + current.getDeadline());
+                System.out.println();        
                 current = current.next;
             } else {
                 current = current.next;
