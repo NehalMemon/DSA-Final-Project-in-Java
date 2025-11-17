@@ -14,7 +14,7 @@ public class SortingAndSearch extends TaskList {
                 "Check all pending code submissions for quality assurance.",
                 Task.Priority.medium,
                 Task.Status.pending,
-                "2025-11-12");
+                "12-12-25");
 
         list.createTask(
                 1,
@@ -22,7 +22,7 @@ public class SortingAndSearch extends TaskList {
                 "Update deprecated JDBC calls to connection pooling.",
                 Task.Priority.high,
                 Task.Status.pending,
-                "2025-11-15");
+                "14-11-25");
 
         list.createTask(
                 3,
@@ -30,7 +30,7 @@ public class SortingAndSearch extends TaskList {
                 "Write guides for new API endpoints.",
                 Task.Priority.medium,
                 Task.Status.pending,
-                "2025-11-20");
+                "20-11-25");
 
         list.createTask(
                 4,
@@ -38,7 +38,7 @@ public class SortingAndSearch extends TaskList {
                 "Fix critical payment gateway bug immediately.",
                 Task.Priority.high,
                 Task.Status.pending,
-                "2025-11-13");
+                "02-12-25");
 
         list.createTask(
                 5,
@@ -46,7 +46,7 @@ public class SortingAndSearch extends TaskList {
                 "Prepare materials for Q1 project kickoff.",
                 Task.Priority.low,
                 Task.Status.pending,
-                "2025-11-25");
+                "03-12-25");
 
         System.out.println("\n--- BEFORE SORTING ---");
         list.displayTasks();
@@ -54,6 +54,11 @@ public class SortingAndSearch extends TaskList {
         list.sortByPriority();
 
         System.out.println("\n--- AFTER SORTING BY PRIORITY ---");
+        list.displayTasks();
+
+        list.sortByPriority();
+
+        System.out.println("\n--- AFTER SORTING BY DEADLINE ---");
         list.displayTasks();
     }
 
@@ -66,13 +71,13 @@ public class SortingAndSearch extends TaskList {
         while (current != null) {
             Task nextNode = current.next;
             current.next = null;
-            sorted = InsertionHelper.insertByOrder(sorted, current);
+            sorted = InsertionHelper.insertByPriority(sorted, current);
             current = nextNode;
         }
 
         this.head = sorted;
     }
-}
+
     public void sortByDeadline() {
 
         Task sorted = null;
@@ -81,7 +86,7 @@ public class SortingAndSearch extends TaskList {
         while (current != null) {
             Task nextNode = current.next;
             current.next = null;
-            sorted = InsertionHelper.insertByOrder(sorted, current);
+            sorted = InsertionHelper.insertByDeadline(sorted, current);
             current = nextNode;
         }
 

@@ -4,8 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import structures.Task;
+import structures.TaskList;
 
 public class AddTaskForm extends JFrame {
+
+    private TaskList taskList;
+    private TaskTableModel model; 
+    private int nextId = 5; // Start ID after the sample data in MainApp (adjust if needed)
 
     private JTextField titleField;
     private JTextArea descriptionArea;
@@ -13,22 +19,32 @@ public class AddTaskForm extends JFrame {
     private JComboBox<String> statusBox;
     private JTextField dueDateField;
     private JTextField assigneeField;
+    private JButton addButton; // FIX: Declared addButton here
 
-    public AddTaskForm() {
+    // Updated Constructor to accept TaskList and TaskTableModel
+    public AddTaskForm(TaskList taskList, TaskTableModel model) { 
+        this.taskList = taskList;
+        this.model = model;
+        
+        // Find the highest ID and start generating from there to prevent collisions
+        Task lastTask = taskList.get(taskList.size() - 1);
+        if (lastTask != null) {
+            this.nextId = lastTask.getId() + 1;
+        }
 
         setTitle("Add New Task");
         setSize(480, 620);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLayout(new GridBagLayout());
         setLocationRelativeTo(null);
 
         // Main Background
-        getContentPane().setBackground(new Color(20, 20, 20));  // Dark BG
+        getContentPane().setBackground(new Color(20, 20, 20));
 
         // Card Panel (Modern Look)
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
-        panel.setBackground(new Color(32, 32, 32)); // Card color
+        panel.setBackground(new Color(32, 32, 32));
         panel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -49,11 +65,12 @@ public class AddTaskForm extends JFrame {
         dueDateField = makeTextField(font);
         assigneeField = makeTextField(font);
 
-        priorityBox = makeCombo(new String[]{"Low", "Medium", "High"}, font);
-        statusBox = makeCombo(new String[]{"To Do", "In Progress", "Done"}, font);
+        // Priority enums are low, medium, high (must match Task.Priority)
+        priorityBox = makeCombo(new String[]{"low", "medium", "high"}, font); 
+        // Status enums are pending, completed (match Task.Status)
+        statusBox = makeCombo(new String[]{"pending", "completed"}, font);
 
         // --- Add Components ---
-
         addField(panel, gbc, "Task Title:", titleField, font);
         addArea(panel, gbc, "Task Description:", descriptionArea, font);
         addField(panel, gbc, "Priority:", priorityBox, font);
@@ -61,8 +78,8 @@ public class AddTaskForm extends JFrame {
         addField(panel, gbc, "Due Date (yyyy-mm-dd):", dueDateField, font);
         addField(panel, gbc, "Assigned To:", assigneeField, font);
 
-        // Modern Button
-        JButton addButton = new JButton("Add Task");
+        // Modern Button (Now using the declared field)
+        addButton = new JButton("Add Task"); // FIX: Initialization of addButton
         addButton.setFont(font);
         addButton.setBackground(new Color(0, 122, 255));
         addButton.setForeground(Color.WHITE);
@@ -81,30 +98,24 @@ public class AddTaskForm extends JFrame {
 
                 String title = titleField.getText().trim();
                 String desc = descriptionArea.getText().trim();
-                String priority = (String) priorityBox.getSelectedItem();
-                String status = (String) statusBox.getSelectedItem();
+                String priorityStr = (String) priorityBox.getSelectedItem();
+                String statusStr = (String) statusBox.getSelectedItem();
                 String dueDate = dueDateField.getText().trim();
                 String assignee = assigneeField.getText().trim();
 
                 if (title.isEmpty()) {
-                    JOptionPane.showMessageDialog(null,
-                            "Title is required!",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Title is required!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                saveTaskToDatabase(title, desc, priority, status, dueDate, assignee);
+                saveTask(title, desc, priorityStr, statusStr, dueDate, assignee);
 
-                JOptionPane.showMessageDialog(null,
-                        "Task added successfully!",
-                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Task added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                clearForm();
+                clearForm(); // FIX: Now the method is defined below
+                setVisible(false);
             }
         });
-
-        setVisible(true);
     }
 
     // --------------------------- UI HELPERS -----------------------------
@@ -165,11 +176,19 @@ public class AddTaskForm extends JFrame {
         priorityBox.setSelectedIndex(0);
         statusBox.setSelectedIndex(0);
         dueDateField.setText("");
-        assigneeField.setText("");
     }
 
-    private void saveTaskToDatabase(String title, String desc, String priority,
-                                    String status, String dueDate, String assignee) {
-        System.out.println("Saving task to DB: " + title);
+    private void saveTask(String title, String desc, String priorityStr,
+                          String statusStr, String dueDate) {
+        
+        // Convert string values to Task Enums
+        Task.Priority priority = Task.Priority.valueOf(priorityStr);
+        Task.Status status = Task.Status.valueOf(statusStr); 
+
+        // Create the task and add it to the list
+        taskList.createTask(nextId++, title, desc, priority, status, dueDate);
+        
+        // Notify the main table to redraw with the new task
+        model.refresh(); 
     }
 }

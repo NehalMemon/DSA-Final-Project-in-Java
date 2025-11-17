@@ -43,9 +43,9 @@ public class TaskList {
         while (current != null && current.getId() != id) {
             prev = current;
             current = current.next;
-            if (current == null) {
-                return false;
-            }
+        }
+        if (current == null) {
+            return false;
         }
         prev.next = current.next;
         return true;
@@ -53,7 +53,7 @@ public class TaskList {
 
     public Task findTask(int id) {
         Task current = head;
-        while (current.getId() != id) {
+        while (current != null && current.getId() != id) {
             current = current.next;
             if (current == null) {
                 return null;
@@ -62,12 +62,12 @@ public class TaskList {
         return current;
     }
 
-    public Task markComplete(int id) {
+    public boolean markComplete(int id) {
         Task completedTask = findTask(id);
         if (completedTask != null) {
             completedTask.setStatus(Task.Status.completed);
-        }
-        return completedTask;
+            return true;
+        }return false;
     }
 
     public void displayTasks() {
@@ -85,7 +85,7 @@ public class TaskList {
         }
     }
 
-    public int Size() {
+    public int size() {
         Task current = head;
         int size = 0;
         while (current != null) {
@@ -94,4 +94,21 @@ public class TaskList {
         }
         return size;
     }
+
+    public Task get(int index) {
+        if (index < 0) {
+            throw new IndexOutOfBoundsException("Index cannot be negative");
+        }
+        Task current = head;
+        int count = 0;
+        while (current != null) {
+            if (count == index) {
+                return current;
+            }
+            count++;
+            current = current.next;
+        }
+        throw new IndexOutOfBoundsException("Index " + index + " out of bounds");
+    }
+
 }

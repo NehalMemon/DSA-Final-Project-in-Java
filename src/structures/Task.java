@@ -22,7 +22,7 @@ public class Task {
         this.id = id;
         this.description = description;
         this.priority = priority;
-        this.status = status;
+        this.status = Status.pending;
         this.deadline = deadline;
     }
 
