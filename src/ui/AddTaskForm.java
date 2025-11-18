@@ -2,91 +2,124 @@ package ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import structures.Task;
 import structures.TaskList;
 
 public class AddTaskForm extends JFrame {
 
     private TaskList taskList;
-    private TaskTableModel model; 
-    private int nextId = 1; // Default starting ID
+    private TaskTableModel model;
+    private int nextId = 1;
 
     private JTextField titleField;
     private JTextArea descriptionArea;
     private JComboBox<String> priorityBox;
-    private JTextField dueDateField; // Keeping as JTextField, enforcing DD-MM-YYYY
+    private JTextField dueDateField;
     private JButton addButton;
 
-    // Pattern for strict DD-MM-YYYY format validation
-    private static final Pattern DATE_PATTERN = Pattern.compile("^\\d{2}-\\d{2}-\\d{4}$");
-
-    public AddTaskForm(TaskList taskList, TaskTableModel model) { 
+    public AddTaskForm(TaskList taskList, TaskTableModel model) {
         this.taskList = taskList;
         this.model = model;
-        
-        // Find the highest ID and start generating from there to prevent collisions
+
         Task lastTask = taskList.get(taskList.size() - 1);
         if (lastTask != null) {
             this.nextId = lastTask.getId() + 1;
         }
 
         setTitle("Add New Task");
-        setSize(480, 500); // Reduced height since fields are removed
+        setSize(540, 600);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        setLayout(new GridBagLayout());
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        // Main Background
-        getContentPane().setBackground(new Color(20, 20, 20));
+        /* ------------------ Modern Gradient Background ------------------ */
+        JPanel backgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                GradientPaint gradient = new GradientPaint(
+                        0, 0, new Color(24, 30, 54),
+                        0, getHeight(), new Color(45, 55, 72)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        backgroundPanel.setLayout(new GridBagLayout());
 
-        // Card Panel (Modern Look)
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
-        panel.setBackground(new Color(32, 32, 32));
-        panel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+        /* --------------------- Main Card Panel ------------------------- */
+        JPanel card = new JPanel();
+        card.setLayout(new GridBagLayout());
+        card.setPreferredSize(new Dimension(430, 520));
+        card.setBackground(new Color(255, 255, 255, 240));
+
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
+                BorderFactory.createEmptyBorder(25, 30, 30, 30)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(12, 0, 0, 0);
+        gbc.insets = new Insets(10, 0, 10, 0);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
+        gbc.gridy = 0;
         gbc.weightx = 1;
 
-        // --- MODERN FONT ---
-        Font font = new Font("Montserrat", Font.PLAIN, 14);
-        UIManager.put("Label.foreground", new Color(230, 230, 230));
+        /* ------------------------ Header -------------------------- */
+        JLabel header = new JLabel("Create New Task", SwingConstants.CENTER);
+        header.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        header.setForeground(new Color(33, 42, 62));
+        card.add(header, gbc);
 
-        // TextField Style
-        titleField = makeTextField(font);
-        descriptionArea = makeTextArea(font);
-        dueDateField = makeTextField(font);
+        /* ------------------------ UI Fonts -------------------------- */
+        Font labelFont = new Font("Segoe UI", Font.BOLD, 13);
+        Font fieldFont = new Font("Segoe UI", Font.PLAIN, 14);
 
-        // Priority enums are low, medium, high (match Task.Priority)
-        priorityBox = makeCombo(new String[]{"low", "medium", "high"}, font); 
-
-        // --- Add Components ---
-        addField(panel, gbc, "Task Title:", titleField, font);
-        addArea(panel, gbc, "Task Description:", descriptionArea, font);
-        addField(panel, gbc, "Priority:", priorityBox, font);
-        // UPDATED DATE PROMPT
-        addField(panel, gbc, "Due Date (DD-MM-YYYY):", dueDateField, font); 
-        
-        // Modern Button
-        addButton = new JButton("Add Task");
-        addButton.setFont(font);
-        addButton.setBackground(new Color(0, 122, 255));
-        addButton.setForeground(Color.WHITE);
-        addButton.setFocusPainted(false);
-        addButton.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
-        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        /* ------------------------ Components ------------------------ */
         gbc.gridy++;
-        panel.add(addButton, gbc);
+        titleField = createTextField(fieldFont);
+        addField(card, gbc, "Task Title", titleField, labelFont);
 
-        add(panel);
+        descriptionArea = createTextArea(fieldFont);
+        addArea(card, gbc, "Description", descriptionArea, labelFont);
 
-        // Button Action
+        priorityBox = createCombo(new String[]{"low", "medium", "high"}, fieldFont);
+        addField(card, gbc, "Priority", priorityBox, labelFont);
+
+        dueDateField = createTextField(fieldFont);
+        addField(card, gbc, "Due Date (DD-MM-YYYY)", dueDateField, labelFont);
+
+        /* ------------------------ Add Button ----------------------- */
+        addButton = new JButton("Add Task");
+        addButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        addButton.setFocusPainted(false);
+        addButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addButton.setBackground(new Color(59, 130, 246));
+        addButton.setForeground(Color.WHITE);
+        addButton.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
+
+        // Rounded button
+        addButton.setBorder(BorderFactory.createLineBorder(new Color(59, 130, 246), 1, true));
+
+        // Hover effect
+        addButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                addButton.setBackground(new Color(37, 99, 235));
+            }
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                addButton.setBackground(new Color(59, 130, 246));
+            }
+        });
+
+        gbc.gridy++;
+        gbc.insets = new Insets(20, 0, 0, 0);
+        card.add(addButton, gbc);
+
+        backgroundPanel.add(card, new GridBagConstraints());
+        add(backgroundPanel, BorderLayout.CENTER);
+
+        /* ------------------ Button Action Logic ------------------ */
         addButton.addActionListener(e -> {
             String title = titleField.getText().trim();
             String desc = descriptionArea.getText().trim();
@@ -94,96 +127,98 @@ public class AddTaskForm extends JFrame {
             String dueDate = dueDateField.getText().trim();
 
             if (title.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Title is required!", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // DATE VALIDATION
-            if (!DATE_PATTERN.matcher(dueDate).matches()) {
-                JOptionPane.showMessageDialog(null, "Due Date must be in DD-MM-YYYY format!", "Error", JOptionPane.ERROR_MESSAGE);
+                showError("Title is required!");
                 return;
             }
 
-            // Status is implicitly 'pending' since we removed the field
-            saveTask(title, desc, priorityStr, Task.Status.pending.name(), dueDate);
+            if (!dueDate.matches("^\\d{2}-\\d{2}-\\d{4}$")) {
+                showError("Date must be in DD-MM-YYYY format.");
+                return;
+            }
 
-            JOptionPane.showMessageDialog(null, "Task added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            taskList.createTask(nextId++, title, desc,
+                    Task.Priority.valueOf(priorityStr),
+                    Task.Status.pending,
+                    dueDate
+            );
 
+            model.refresh();
+            showSuccess("Task added successfully!");
             clearForm();
             setVisible(false);
         });
     }
 
-    // --------------------------- UI HELPERS -----------------------------
+    /* ==================================================================
+                           UI HELPER FUNCTIONS
+       ================================================================== */
 
-    private JTextField makeTextField(Font f) {
+    private JTextField createTextField(Font font) {
         JTextField field = new JTextField();
-        field.setFont(f);
-        field.setBackground(new Color(45, 45, 45));
-        field.setForeground(Color.WHITE);
-        field.setCaretColor(Color.WHITE);
-        field.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 70), 1));
+        field.setFont(font);
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+        ));
         return field;
     }
 
-    private JTextArea makeTextArea(Font f) {
-        JTextArea area = new JTextArea(3, 20);
-        area.setFont(f);
+    private JTextArea createTextArea(Font font) {
+        JTextArea area = new JTextArea(4, 20);
+        area.setFont(font);
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
-        area.setBackground(new Color(45, 45, 45));
-        area.setForeground(Color.WHITE);
-        area.setCaretColor(Color.WHITE);
-        area.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 70), 1));
+        area.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+        ));
         return area;
     }
 
-    private JComboBox<String> makeCombo(String[] list, Font f) {
+    private JComboBox<String> createCombo(String[] list, Font font) {
         JComboBox<String> box = new JComboBox<>(list);
-        box.setFont(f);
-        box.setBackground(new Color(45, 45, 45));
-        box.setForeground(Color.WHITE);
+        box.setFont(font);
+        box.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true));
         return box;
     }
 
-    private void addField(JPanel panel, GridBagConstraints gbc, String text, JComponent comp, Font f) {
-        JLabel label = new JLabel(text);
-        label.setFont(f);
+    private void addField(JPanel panel, GridBagConstraints gbc, String label, JComponent comp, Font font) {
         gbc.gridy++;
-        panel.add(label, gbc);
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(font);
+        lbl.setForeground(new Color(70, 80, 100));
+        panel.add(lbl, gbc);
+
         gbc.gridy++;
         panel.add(comp, gbc);
     }
 
-    private void addArea(JPanel panel, GridBagConstraints gbc, String text, JTextArea area, Font f) {
-        JLabel label = new JLabel(text);
-        label.setFont(f);
+    private void addArea(JPanel panel, GridBagConstraints gbc, String label, JTextArea area, Font font) {
         gbc.gridy++;
-        panel.add(label, gbc);
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(font);
+        lbl.setForeground(new Color(70, 80, 100));
+        panel.add(lbl, gbc);
+
         gbc.gridy++;
-        panel.add(new JScrollPane(area), gbc);
+        JScrollPane pane = new JScrollPane(area);
+        pane.setBorder(null);
+        panel.add(pane, gbc);
     }
 
-    // ----------------------- FUNCTIONALITY ------------------------
+    /* ------------------------ Dialog Helpers ------------------------ */
+    private void showError(String msg) {
+        JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showSuccess(String msg) {
+        JOptionPane.showMessageDialog(this, msg, "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
 
     private void clearForm() {
         titleField.setText("");
         descriptionArea.setText("");
         priorityBox.setSelectedIndex(0);
         dueDateField.setText("");
-    }
-
-    private void saveTask(String title, String desc, String priorityStr,
-                          String statusStr, String dueDate) {
-        
-        // Convert string values to Task Enums
-        Task.Priority priority = Task.Priority.valueOf(priorityStr);
-        Task.Status status = Task.Status.valueOf(statusStr); 
-
-        // Create the task and add it to the list
-        taskList.createTask(nextId++, title, desc, priority, status, dueDate);
-        
-        // Notify the main table to redraw with the new task
-        model.refresh(); 
     }
 }
