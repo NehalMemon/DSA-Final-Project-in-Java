@@ -1,17 +1,17 @@
 package ui;
 
-import structures.Task;
-import structures.TaskStack; // Import your custom stack
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
+import structures.Task;
+import structures.TaskStack;
 
 /**
- * Table Model for the CompletedTasks UI.
- * Displays Task Title, Due Date, and a functional "Undo" button.
+ * Table Model for CompletedTasks UI.
+ * Works seamlessly with the professional-themed JTable.
  */
 public class CompletedTasksTableModel extends AbstractTableModel {
     private TaskStack stack;
-    private List<Task> currentTasks; // Used for easy access via List interface
+    private List<Task> currentTasks; 
     private final String[] columnNames = {"ID", "Task Title", "Due Date", "Action"};
 
     public CompletedTasksTableModel(TaskStack stack) {
@@ -20,7 +20,7 @@ public class CompletedTasksTableModel extends AbstractTableModel {
     }
 
     /**
-     * Refreshes the internal List data from the stack and notifies the table.
+     * Refreshes the internal data from the stack and notifies the table.
      */
     public void refresh() {
         this.currentTasks = stack.getTasks();
@@ -44,32 +44,27 @@ public class CompletedTasksTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        // Data is pulled from the display List
         Task task = currentTasks.get(rowIndex);
         switch (columnIndex) {
             case 0: return task.getId();
             case 1: return task.getTitle();
-            case 2: return task.getDeadline(); 
-            case 3: return "Undo"; // Text for the button
+            case 2: return task.getDeadline();
+            case 3: return "Undo"; // Will be rendered as a professional button
             default: return null;
         }
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        // The last column is always a button (rendered as String)
-        if (columnIndex == 3) {
-            return String.class;
+        switch (columnIndex) {
+            case 0: return Integer.class; // ID
+            case 3: return String.class;  // Action button
+            default: return String.class;
         }
-        if (columnIndex == 0) {
-            return Integer.class; // ID column
-        }
-        return String.class;
     }
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        // Only the "Action" column (Undo button) is editable/clickable
-        return columnIndex == 3;
+        return columnIndex == 3; // Only the Undo button column is editable/clickable
     }
 }
