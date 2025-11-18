@@ -34,16 +34,7 @@ public class SortingAndSearch extends TaskList {
         this.head = sorted;
     }
 
-     public Task searchByTitle(String title){
-        Task current = head;
-        while(current != null){
-            if(current.getTitle().equalsIgnoreCase(title)){
-                return current;
-            }
-            current = current.next;
-        }
-        return null;
-    }
+    
 }
 // public static void main(String[] args) {
 

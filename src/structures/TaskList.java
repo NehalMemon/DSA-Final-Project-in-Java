@@ -88,7 +88,6 @@ public class TaskList {
         return false;
     }
 
-    // FIXED: Added title to output
     public void displayTasks() {
         Task current = head;
         while (current != null) {
@@ -103,6 +102,17 @@ public class TaskList {
         }
     }
 
+    public Task searchByTitle(String title){
+        Task current = head;
+        while(current != null){
+            if(current.getTitle().equalsIgnoreCase(title)){
+                return current;
+            }
+            current = current.next;
+        }
+        return null;
+    }
+    
     public int size() {
         Task current = head;
         int size = 0;

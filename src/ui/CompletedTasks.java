@@ -59,7 +59,7 @@ public class CompletedTasks extends JFrame {
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
         // *** NEW: Refresh Button ***
-        JButton refreshBtn = styledButton("↻ Refresh", ACCENT2.darker(), headerFont.deriveFont(Font.BOLD, 12));
+        JButton refreshBtn = styledButton("Refresh", ACCENT2.darker(), headerFont.deriveFont(Font.BOLD, 12));
         refreshBtn.addActionListener(e -> refreshTable());
         
         JPanel rightHeaderPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
@@ -147,7 +147,7 @@ public class CompletedTasks extends JFrame {
                 
                 // Show confirmation message
                 JOptionPane.showMessageDialog(this, 
-                    "Task '" + taskToUndo.getTitle() + "' restored to main list.", 
+                    "Task '" + taskToUndo.getTitle() + "restored to main list.", 
                     "Task Undone", JOptionPane.INFORMATION_MESSAGE);
                 
                 // Note: The MainWindow's model should be refreshed when this window closes or by the user refreshing MainWindow.
