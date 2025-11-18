@@ -10,6 +10,20 @@ import structures.TaskList;
 
 public class AddTaskForm extends JFrame {
 
+    // Theme Colors
+    private final Color BG_DARK = new Color(0x3d3b3c);
+    private final Color ACCENT = new Color(0xb592a0);
+    private final Color ACCENT2 = new Color(0x7a9e9f);
+    private final Color SUCCESS = new Color(0x6bffb8);
+    private final Color WARNING = new Color(0xbc5f04);
+
+    // Derived Colors
+    private final Color CARD_BG = new Color(0x2f2f2f); // Lighter dark for the card panel
+    private final Color FIELD_BG = new Color(0x454545); // Background for input fields
+    private final Color FIELD_BORDER = ACCENT2.darker(); // Border for input fields
+    private final Color TEXT_LIGHT = Color.WHITE;
+    private final Color LABEL_FOREGROUND = ACCENT; // Using ACCENT for labels
+
     private TaskList taskList;
     private TaskTableModel model; 
     private int nextId = 1; // Default starting ID
@@ -40,12 +54,12 @@ public class AddTaskForm extends JFrame {
         setLocationRelativeTo(null);
 
         // Main Background
-        getContentPane().setBackground(new Color(20, 20, 20));
+        getContentPane().setBackground(BG_DARK); // Applied BG_DARK
 
         // Card Panel (Modern Look)
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
-        panel.setBackground(new Color(32, 32, 32));
+        panel.setBackground(CARD_BG); // Applied CARD_BG
         panel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -54,9 +68,9 @@ public class AddTaskForm extends JFrame {
         gbc.gridx = 0;
         gbc.weightx = 1;
 
-        // --- MODERN FONT ---
-        Font font = new Font("Montserrat", Font.PLAIN, 14);
-        UIManager.put("Label.foreground", new Color(230, 230, 230));
+        // --- THEMED FONT SETUP ---
+        Font font = new Font("Segoe UI", Font.PLAIN, 14); // Changed to Segoe UI for consistency
+        UIManager.put("Label.foreground", LABEL_FOREGROUND); // Applied ACCENT for UIManager default
 
         // TextField Style
         titleField = makeTextField(font);
@@ -75,9 +89,9 @@ public class AddTaskForm extends JFrame {
         
         // Modern Button
         addButton = new JButton("Add Task");
-        addButton.setFont(font);
-        addButton.setBackground(new Color(0, 122, 255));
-        addButton.setForeground(Color.WHITE);
+        addButton.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Consistent bold font
+        addButton.setBackground(ACCENT2); // Applied ACCENT2 for the main button
+        addButton.setForeground(TEXT_LIGHT); // Applied TEXT_LIGHT
         addButton.setFocusPainted(false);
         addButton.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -119,10 +133,13 @@ public class AddTaskForm extends JFrame {
     private JTextField makeTextField(Font f) {
         JTextField field = new JTextField();
         field.setFont(f);
-        field.setBackground(new Color(45, 45, 45));
-        field.setForeground(Color.WHITE);
-        field.setCaretColor(Color.WHITE);
-        field.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 70), 1));
+        field.setBackground(FIELD_BG); // Applied FIELD_BG
+        field.setForeground(TEXT_LIGHT); // Applied TEXT_LIGHT
+        field.setCaretColor(TEXT_LIGHT);
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(FIELD_BORDER, 1), // Applied FIELD_BORDER
+            BorderFactory.createEmptyBorder(6, 6, 6, 6)
+        ));
         return field;
     }
 
@@ -131,24 +148,28 @@ public class AddTaskForm extends JFrame {
         area.setFont(f);
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
-        area.setBackground(new Color(45, 45, 45));
-        area.setForeground(Color.WHITE);
-        area.setCaretColor(Color.WHITE);
-        area.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 70), 1));
+        area.setBackground(FIELD_BG); // Applied FIELD_BG
+        area.setForeground(TEXT_LIGHT); // Applied TEXT_LIGHT
+        area.setCaretColor(TEXT_LIGHT);
+        area.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(FIELD_BORDER, 1), // Applied FIELD_BORDER
+            BorderFactory.createEmptyBorder(6, 6, 6, 6)
+        ));
         return area;
     }
 
     private JComboBox<String> makeCombo(String[] list, Font f) {
         JComboBox<String> box = new JComboBox<>(list);
         box.setFont(f);
-        box.setBackground(new Color(45, 45, 45));
-        box.setForeground(Color.WHITE);
+        box.setBackground(FIELD_BG); // Applied FIELD_BG
+        box.setForeground(TEXT_LIGHT); // Applied TEXT_LIGHT
         return box;
     }
 
     private void addField(JPanel panel, GridBagConstraints gbc, String text, JComponent comp, Font f) {
         JLabel label = new JLabel(text);
-        label.setFont(f);
+        label.setFont(f.deriveFont(Font.BOLD)); // Labels should be bold
+        label.setForeground(LABEL_FOREGROUND); // Set label foreground here to override UIManager for safety
         gbc.gridy++;
         panel.add(label, gbc);
         gbc.gridy++;
@@ -157,11 +178,16 @@ public class AddTaskForm extends JFrame {
 
     private void addArea(JPanel panel, GridBagConstraints gbc, String text, JTextArea area, Font f) {
         JLabel label = new JLabel(text);
-        label.setFont(f);
+        label.setFont(f.deriveFont(Font.BOLD)); // Labels should be bold
+        label.setForeground(LABEL_FOREGROUND); // Set label foreground here
         gbc.gridy++;
         panel.add(label, gbc);
         gbc.gridy++;
-        panel.add(new JScrollPane(area), gbc);
+        // Use the themed colors for the scroll pane viewport as well
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.getViewport().setBackground(FIELD_BG);
+        scroll.setBorder(BorderFactory.createLineBorder(FIELD_BORDER, 1));
+        panel.add(scroll, gbc);
     }
 
     // ----------------------- FUNCTIONALITY ------------------------
@@ -174,7 +200,7 @@ public class AddTaskForm extends JFrame {
     }
 
     private void saveTask(String title, String desc, String priorityStr,
-                          String statusStr, String dueDate) {
+                            String statusStr, String dueDate) {
         
         // Convert string values to Task Enums
         Task.Priority priority = Task.Priority.valueOf(priorityStr);

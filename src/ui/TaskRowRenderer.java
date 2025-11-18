@@ -12,37 +12,38 @@ public class TaskRowRenderer extends DefaultTableCellRenderer {
 
     public TaskRowRenderer(TaskTableModel model) {
         this.model = model;
-        // Align deadline column to the right for better reading
-        setHorizontalAlignment(CENTER); 
+        setHorizontalAlignment(LEFT);
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+
         Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
         if (!isSelected) {
             Task task = model.getTaskAt(row);
-            
-            // Set the background color based on priority
-            switch (task.getPriority()) {
-                case high:
-                    c.setBackground(new Color(255, 192, 192)); // Light Red
-                    break;
-                case medium:
-                    c.setBackground(new Color(255, 255, 192)); // Light Yellow
-                    break;
-                case low:
-                    c.setBackground(new Color(192, 255, 192)); // Light Green
-                    break;
-                default:
-                    c.setBackground(Color.WHITE);
+            if (task != null) {
+                switch (task.getPriority()) {
+                    case high:
+                        c.setBackground(new Color(255, 204, 204)); // light red
+                        break;
+                    case medium:
+                        c.setBackground(new Color(255, 255, 204)); // light yellow
+                        break;
+                    case low:
+                        c.setBackground(new Color(204, 255, 204)); // light green
+                        break;
+                    default:
+                        c.setBackground(Color.WHITE);
+                }
+            } else {
+                c.setBackground(Color.WHITE);
             }
         } else {
-            // Use default selection color
             c.setBackground(table.getSelectionBackground());
         }
-        
+
         return c;
     }
 }

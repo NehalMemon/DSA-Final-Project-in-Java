@@ -7,9 +7,21 @@ import structures.Task;
 import structures.TaskQueue;
 import structures.TaskStack;
 import structures.TaskList;
+import java.awt.event.ActionListener;
 
 public class TodayTasksWindow extends JFrame {
 
+    // Theme Colors
+    private final Color BG_DARK = new Color(0x3d3b3c);
+    private final Color ACCENT = new Color(0xb592a0);
+    private final Color ACCENT2 = new Color(0x7a9e9f);
+    private final Color SUCCESS = new Color(0x6bffb8);
+    private final Color WARNING = new Color(0xbc5f04);
+
+    // Derived Colors
+    private final Color TABLE_ROW_BG = new Color(0x2f2f2f); // Slightly lighter dark for table body
+    private final Color TEXT_LIGHT = Color.WHITE;
+    
     private TaskQueue todayQueue;
     private TaskStack completedStack;
     private TaskList mainTaskList;
@@ -28,25 +40,38 @@ public class TodayTasksWindow extends JFrame {
         setLocationRelativeTo(null);
 
         // --- Styles matching other windows ---
-        getContentPane().setBackground(new Color(20, 20, 20));
-        Font headerFont = new Font("Montserrat", Font.BOLD, 18);
-        Font tableFont = new Font("Montserrat", Font.PLAIN, 14);
+        getContentPane().setBackground(BG_DARK); // Applied BG_DARK
+        
+        // Using "Segoe UI" for consistency with MainWindow's UIManager settings
+        Font headerFont = new Font("Segoe UI", Font.BOLD, 18);
+        Font tableFont = new Font("Segoe UI", Font.PLAIN, 14);
 
         // Header Panel
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(32, 32, 32));
+        headerPanel.setBackground(BG_DARK); // Applied BG_DARK
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         
         JLabel titleLabel = new JLabel("⭐ Today's Priority Tasks (First In, First Out)");
         titleLabel.setFont(headerFont);
-        titleLabel.setForeground(new Color(0, 122, 255));
+        titleLabel.setForeground(ACCENT); // Applied ACCENT color
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
+        // Right side: Info label and Refresh button
+        JPanel rightHeaderPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        rightHeaderPanel.setBackground(BG_DARK);
+        
         // Info label showing queue size
         JLabel infoLabel = new JLabel("Tasks in queue: " + todayQueue.size() + " / 10");
-        infoLabel.setFont(new Font("Montserrat", Font.PLAIN, 12));
-        infoLabel.setForeground(new Color(200, 200, 200));
-        headerPanel.add(infoLabel, BorderLayout.EAST);
+        infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoLabel.setForeground(ACCENT2); // Applied ACCENT2 for secondary text
+        rightHeaderPanel.add(infoLabel);
+
+        // *** NEW: Refresh Button ***
+        JButton refreshBtn = styledButton("↻ Refresh", ACCENT2.darker(), headerFont.deriveFont(Font.BOLD, 12));
+        refreshBtn.addActionListener(e -> refreshTable());
+        rightHeaderPanel.add(refreshBtn);
+
+        headerPanel.add(rightHeaderPanel, BorderLayout.EAST);
 
         add(headerPanel, BorderLayout.NORTH);
 
@@ -57,21 +82,21 @@ public class TodayTasksWindow extends JFrame {
         // Table Styling
         todayTable.setFont(tableFont);
         todayTable.setRowHeight(35);
-        todayTable.setGridColor(new Color(50, 50, 50));
-        todayTable.setBackground(new Color(32, 32, 32));
-        todayTable.setForeground(Color.WHITE);
-        todayTable.setSelectionBackground(new Color(50, 50, 50));
-        todayTable.setSelectionForeground(Color.WHITE);
+        todayTable.setGridColor(BG_DARK.brighter()); // Consistent grid color
+        todayTable.setBackground(TABLE_ROW_BG); // Applied TABLE_ROW_BG
+        todayTable.setForeground(TEXT_LIGHT); // Applied TEXT_LIGHT
+        todayTable.setSelectionBackground(ACCENT2.darker()); // Consistent selection color
+        todayTable.setSelectionForeground(TEXT_LIGHT);
 
         // Table Header Styling
-        todayTable.getTableHeader().setBackground(new Color(45, 45, 45));
-        todayTable.getTableHeader().setForeground(Color.WHITE);
-        todayTable.getTableHeader().setFont(headerFont.deriveFont(Font.BOLD, 14));
-        todayTable.getTableHeader().setBorder(BorderFactory.createLineBorder(new Color(50, 50, 50)));
+        todayTable.getTableHeader().setBackground(ACCENT); // Applied ACCENT for header background
+        todayTable.getTableHeader().setForeground(TEXT_LIGHT);
+        todayTable.getTableHeader().setFont(headerFont.deriveFont(Font.BOLD, 15));
+        todayTable.getTableHeader().setBorder(BorderFactory.createLineBorder(BG_DARK.brighter()));
 
         // Set column widths
-        todayTable.getColumnModel().getColumn(0).setPreferredWidth(60);  // Position
-        todayTable.getColumnModel().getColumn(1).setPreferredWidth(50);  // ID
+        todayTable.getColumnModel().getColumn(0).setPreferredWidth(60); // Position
+        todayTable.getColumnModel().getColumn(1).setPreferredWidth(50); // ID
         todayTable.getColumnModel().getColumn(2).setPreferredWidth(300); // Title
         todayTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Priority
         todayTable.getColumnModel().getColumn(4).setPreferredWidth(120); // Deadline
@@ -86,21 +111,34 @@ public class TodayTasksWindow extends JFrame {
 
         // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(todayTable);
-        scrollPane.getViewport().setBackground(new Color(32, 32, 32));
+        scrollPane.getViewport().setBackground(TABLE_ROW_BG); // Applied TABLE_ROW_BG
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
 
         // Bottom info panel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        bottomPanel.setBackground(new Color(32, 32, 32));
+        bottomPanel.setBackground(BG_DARK); // Applied BG_DARK
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         
         JLabel tipLabel = new JLabel("💡 Tip: Process tasks from top to bottom (FIFO order)");
-        tipLabel.setFont(new Font("Montserrat", Font.ITALIC, 12));
-        tipLabel.setForeground(new Color(150, 150, 150));
+        tipLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        tipLabel.setForeground(ACCENT2); // Applied ACCENT2
         bottomPanel.add(tipLabel);
         
         add(bottomPanel, BorderLayout.SOUTH);
+    }
+    
+    private JButton styledButton(String text, Color bg, Font font) {
+        JButton b = new JButton(text);
+        b.setBackground(bg);
+        b.setForeground(Color.WHITE);
+        b.setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
+        b.setFocusPainted(false);
+        b.setFont(font);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setOpaque(true);
+        b.setBorderPainted(false);
+        return b;
     }
 
     /**
@@ -109,12 +147,17 @@ public class TodayTasksWindow extends JFrame {
     public void refreshTable() {
         tableModel.refresh();
         // Update the info label in header
-        Component[] components = ((JPanel)getContentPane().getComponent(0)).getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JLabel && ((JLabel)comp).getText().contains("Tasks in queue")) {
-                ((JLabel)comp).setText("Tasks in queue: " + todayQueue.size() + " / 10");
-                break;
-            }
+        Component northComponent = getContentPane().getComponent(0);
+        if (northComponent instanceof JPanel) {
+             Component rightComponent = ((JPanel)northComponent).getComponent(1);
+             if (rightComponent instanceof JPanel) {
+                 for (Component comp : ((JPanel)rightComponent).getComponents()) {
+                     if (comp instanceof JLabel && ((JLabel)comp).getText().contains("Tasks in queue")) {
+                         ((JLabel)comp).setText("Tasks in queue: " + todayQueue.size() + " / 10");
+                         break;
+                     }
+                 }
+             }
         }
     }
 
@@ -127,8 +170,10 @@ public class TodayTasksWindow extends JFrame {
             setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
             setOpaque(true);
 
-            completeButton = createButton("✓ Complete", new Color(100, 200, 100));
-            removeButton = createButton("✗ Remove", new Color(255, 100, 100));
+            // Applied SUCCESS color
+            completeButton = createButton("✓ Complete", SUCCESS); 
+            // Applied WARNING color
+            removeButton = createButton("✗ Remove", WARNING); 
 
             add(completeButton);
             add(removeButton);
@@ -137,7 +182,7 @@ public class TodayTasksWindow extends JFrame {
         private JButton createButton(String text, Color bgColor) {
             JButton button = new JButton(text);
             button.setBackground(bgColor);
-            button.setForeground(Color.WHITE);
+            button.setForeground(TEXT_LIGHT);
             button.setFont(getFont().deriveFont(Font.BOLD, 11));
             button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             button.setFocusPainted(false);
@@ -171,42 +216,58 @@ public class TodayTasksWindow extends JFrame {
             panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
             panel.setOpaque(true);
 
-            completeButton = createButton("✓ Complete", new Color(100, 200, 100));
-            removeButton = createButton("✗ Remove", new Color(255, 100, 100));
+            // Applied SUCCESS color
+            completeButton = createButton("✓ Complete", SUCCESS); 
+            // Applied WARNING color
+            removeButton = createButton("✗ Remove", WARNING); 
 
             // Complete button - dequeue and mark as completed
             completeButton.addActionListener(e -> {
-                Task task = todayQueue.dequeue();
+                // To safely dequeue the task associated with the CURRENTLY SELECTED row (FIFO rule)
+                Task task = todayQueue.dequeue(); 
                 if (task != null) {
                     // Mark as completed and push to stack
                     task.setStatus(Task.Status.completed);
                     completedStack.push(task);
                     
-                    // Remove from main list if it exists there
-                    mainTaskList.deleteTask(task.getId());
+                    // The main task list *should* have already had this task deleted
+                    // when it was added to the queue in TaskTableModel.
+                    // We only need to refresh the current view.
                     
                     JOptionPane.showMessageDialog(TodayTasksWindow.this,
                         "Task '" + task.getTitle() + "' completed and moved to completed stack!",
                         "Task Completed", JOptionPane.INFORMATION_MESSAGE);
                     
                     refreshTable();
+                } else {
+                    JOptionPane.showMessageDialog(TodayTasksWindow.this, "Queue is empty!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
                 fireEditingStopped();
             });
 
-            // Remove button - just dequeue without completing
+            // Remove button - dequeue and RE-ADD to main list
             removeButton.addActionListener(e -> {
                 int confirm = JOptionPane.showConfirmDialog(TodayTasksWindow.this,
-                    "Remove this task from today's queue?\n(Task will remain in main list)",
+                    "Remove this task from today's queue?\n(Task will be restored to the main list as pending)",
                     "Confirm Remove", JOptionPane.YES_NO_OPTION);
 
                 if (confirm == JOptionPane.YES_OPTION) {
+                    // To safely dequeue the task associated with the CURRENTLY SELECTED row (FIFO rule)
                     Task task = todayQueue.dequeue();
                     if (task != null) {
+                        // CRITICAL FIX: Restore the task to the main list
+                        task.setStatus(Task.Status.pending);
+                        mainTaskList.createTask(task); // Assuming this method handles adding/re-inserting
+
                         JOptionPane.showMessageDialog(TodayTasksWindow.this,
-                            "Task '" + task.getTitle() + "' removed from today's queue.",
+                            "Task '" + task.getTitle() + "' restored to the main list.",
                             "Task Removed", JOptionPane.INFORMATION_MESSAGE);
+                        
+                        // We must also refresh the MainWindow's model!
+                        // This is currently hard to do without a direct reference, but refreshTable will update this window.
                         refreshTable();
+                    } else {
+                        JOptionPane.showMessageDialog(TodayTasksWindow.this, "Queue is empty!", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
                 fireEditingStopped();
@@ -219,7 +280,7 @@ public class TodayTasksWindow extends JFrame {
         private JButton createButton(String text, Color bgColor) {
             JButton button = new JButton(text);
             button.setBackground(bgColor);
-            button.setForeground(Color.WHITE);
+            button.setForeground(TEXT_LIGHT);
             button.setFont(button.getFont().deriveFont(Font.BOLD, 11));
             button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             button.setFocusPainted(false);

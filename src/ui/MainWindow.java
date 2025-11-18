@@ -1,208 +1,176 @@
 package ui;
 
 import javax.swing.*;
+import javax.swing.table.TableColumn;
 import java.awt.*;
-import structures.Task;
 import structures.TaskList;
-import structures.TaskStack;
+import structures.Task;
 import structures.TaskQueue;
+import structures.TaskStack;
+import structures.SortingAndSearch;
 
 public class MainWindow extends JFrame {
 
+    // Theme Colors
+    private final Color BG_DARK = new Color(0x3d3b3c);
+    private final Color ACCENT = new Color(0xb592a0);
+    private final Color ACCENT2 = new Color(0x7a9e9f);
+    private final Color SUCCESS = new Color(0x6bffb8);
+    private final Color WARNING = new Color(0xbc5f04);
+
     private TaskList taskList;
-    private TaskStack completedStack;
     private TaskQueue todayQueue;
-    
-    private TaskTableModel tableModel;
+    private TaskStack completedStack;
+
+    private TaskTableModel model;
     private JTable taskTable;
-    
-    private AddTaskForm addTaskForm;
-    private CompletedTasks completedTasksWindow;
-    private TodayTasksWindow todayTasksWindow;
+
+    private JTextField searchField;
 
     public MainWindow() {
-        // Initialize data structures
-        taskList = new TaskList();
-        completedStack = new TaskStack();
-        todayQueue = new TaskQueue();
 
-        // Setup main window
-        setTitle("Task Manager - To-Do List");
-        setSize(1000, 700);
+        this.taskList = new SortingAndSearch();
+        this.todayQueue = new TaskQueue();
+        this.completedStack = new TaskStack();
+
+        // Sample Data
+        taskList.createTask(1, "Refactor DB", "Update JDBC", Task.Priority.high, Task.Status.pending, "14-11-25");
+        taskList.createTask(2, "Review PRs", "Code review", Task.Priority.medium, Task.Status.pending, "12-12-25");
+        taskList.createTask(3, "Write docs", "API docs", Task.Priority.medium, Task.Status.pending, "20-11-25");
+        taskList.createTask(4, "Hotfix", "Payment bug", Task.Priority.high, Task.Status.pending, "02-12-25");
+        taskList.createTask(5, "Brainstorm", "Q1 prep", Task.Priority.low, Task.Status.pending, "03-12-25");
+
+        setTitle("Task Manager");
+        setSize(1000, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        // Styling
-        getContentPane().setBackground(new Color(20, 20, 20));
-        Font headerFont = new Font("Montserrat", Font.BOLD, 20);
-        Font buttonFont = new Font("Montserrat", Font.PLAIN, 14);
+        // GLOBAL FONT
+        UIManager.put("Button.font", new Font("Segoe UI", Font.BOLD, 14));
+        UIManager.put("Label.font", new Font("Segoe UI", Font.PLAIN, 14));
+        UIManager.put("Table.font", new Font("Segoe UI", Font.PLAIN, 14));
 
-        // --- HEADER PANEL ---
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(32, 32, 32));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        // Top Bar
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setBackground(BG_DARK);
+        topBar.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
 
-        JLabel titleLabel = new JLabel("📋 My Task Manager");
-        titleLabel.setFont(headerFont);
-        titleLabel.setForeground(new Color(0, 122, 255));
-        headerPanel.add(titleLabel, BorderLayout.WEST);
+        // Button Style
+        UIManager.put("Button.focus", new Color(0,0,0,0));
 
-        // Button Panel (Top Right)
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        buttonPanel.setBackground(new Color(32, 32, 32));
+        // LEFT BUTTONS
+        JPanel leftButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        leftButtons.setBackground(BG_DARK);
 
-        JButton addTaskButton = createStyledButton("+ Add Task", buttonFont);
-        JButton viewCompletedButton = createStyledButton("✓ View Completed", buttonFont);
-        JButton viewTodayButton = createStyledButton("⭐ Today's Tasks", buttonFont);
+        JButton addTaskBtn = styledButton("➕ Add", ACCENT);
+        JButton viewCompleted = styledButton("✔ Completed", ACCENT2);
+        JButton viewToday = styledButton("📋 Today", SUCCESS);
 
-        buttonPanel.add(addTaskButton);
-        buttonPanel.add(viewCompletedButton);
-        buttonPanel.add(viewTodayButton);
+        leftButtons.add(addTaskBtn);
+        leftButtons.add(viewCompleted);
+        leftButtons.add(viewToday);
 
-        headerPanel.add(buttonPanel, BorderLayout.EAST);
-        add(headerPanel, BorderLayout.NORTH);
+        // CENTER SEARCH BAR
+        JPanel centerSearch = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
+        centerSearch.setBackground(BG_DARK);
 
-        // --- TABLE SETUP ---
-        tableModel = new TaskTableModel(taskList);
-        taskTable = new JTable(tableModel);
+        searchField = new JTextField(28);
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(ACCENT),
+                BorderFactory.createEmptyBorder(6, 10, 6, 10)
+        ));
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        // Table Styling
-        taskTable.setFont(new Font("Montserrat", Font.PLAIN, 14));
+        JButton searchBtn = styledButton("🔎", ACCENT2);
+
+        centerSearch.add(searchField);
+        centerSearch.add(searchBtn);
+
+        // RIGHT BUTTONS (SORT + REFRESH)
+        JPanel rightButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightButtons.setBackground(BG_DARK);
+
+        JButton sortPriorityBtn = styledButton("Sort: Priority", WARNING);
+        JButton sortDeadlineBtn = styledButton("Sort: Deadline", WARNING);
+        
+        // *** NEW: Refresh Button ***
+        JButton refreshBtn = styledButton("↻ Refresh", ACCENT2.darker()); 
+
+        rightButtons.add(sortPriorityBtn);
+        rightButtons.add(sortDeadlineBtn);
+        rightButtons.add(refreshBtn);
+
+        topBar.add(leftButtons, BorderLayout.WEST);
+        topBar.add(centerSearch, BorderLayout.CENTER);
+        topBar.add(rightButtons, BorderLayout.EAST);
+
+        add(topBar, BorderLayout.NORTH);
+
+        // TABLE SECTION
+        model = new TaskTableModel(taskList, todayQueue, completedStack);
+        taskTable = new JTable(model);
         taskTable.setRowHeight(40);
-        taskTable.setGridColor(new Color(50, 50, 50));
-        taskTable.setShowGrid(true);
-        taskTable.setSelectionBackground(new Color(50, 50, 50));
-        taskTable.setSelectionForeground(Color.WHITE);
-
-        // Table Header
-        taskTable.getTableHeader().setBackground(new Color(45, 45, 45));
+        taskTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        taskTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 15));
+        taskTable.getTableHeader().setBackground(ACCENT);
         taskTable.getTableHeader().setForeground(Color.WHITE);
-        taskTable.getTableHeader().setFont(new Font("Montserrat", Font.BOLD, 14));
 
-        // Column widths
-        taskTable.getColumnModel().getColumn(0).setPreferredWidth(300); // Title
-        taskTable.getColumnModel().getColumn(1).setPreferredWidth(100); // Priority
-        taskTable.getColumnModel().getColumn(2).setPreferredWidth(150); // Deadline
-        taskTable.getColumnModel().getColumn(3).setPreferredWidth(200); // Actions
-
-        // Set custom renderers and editors
-        TaskRowRenderer rowRenderer = new TaskRowRenderer(tableModel);
+        TaskRowRenderer rowRenderer = new TaskRowRenderer(model);
         taskTable.setDefaultRenderer(Object.class, rowRenderer);
 
         TaskActionRenderer actionRenderer = new TaskActionRenderer();
-        taskTable.getColumn("Actions").setCellRenderer(actionRenderer);
+        TableColumn actionColumn = taskTable.getColumnModel().getColumn(3);
+        actionColumn.setCellRenderer(actionRenderer);
+        actionColumn.setCellEditor(new TaskActionEditor(model, taskTable));
 
-        TaskActionEditor actionEditor = new TaskActionEditor(tableModel, taskTable);
-        taskTable.getColumn("Actions").setCellEditor(actionEditor);
+        JScrollPane scroll = new JScrollPane(taskTable);
+        scroll.getViewport().setBackground(new Color(0x2f2f2f));
+        add(scroll, BorderLayout.CENTER);
 
-        // Scroll Pane
-        JScrollPane scrollPane = new JScrollPane(taskTable);
-        scrollPane.getViewport().setBackground(new Color(32, 32, 32));
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
-        add(scrollPane, BorderLayout.CENTER);
+        // ACTIONS
+        sortPriorityBtn.addActionListener(e -> model.sortByPriority());
+        sortDeadlineBtn.addActionListener(e -> model.sortByDeadline());
 
-        // --- BUTTON ACTIONS ---
-        addTaskButton.addActionListener(e -> {
-            if (addTaskForm == null) {
-                addTaskForm = new AddTaskForm(taskList, tableModel);
-            }
-            addTaskForm.setVisible(true);
+        // Connect Refresh button
+        refreshBtn.addActionListener(e -> model.refresh()); 
+
+        searchBtn.addActionListener(e -> 
+            JOptionPane.showMessageDialog(this, "Search feature will be connected later.", "Search", JOptionPane.INFORMATION_MESSAGE)
+        );
+
+        viewToday.addActionListener(e -> {
+            TodayTasksWindow tw = new TodayTasksWindow(todayQueue, completedStack, taskList);
+            tw.setVisible(true);
         });
 
-        viewCompletedButton.addActionListener(e -> {
-            if (completedTasksWindow == null) {
-                completedTasksWindow = new CompletedTasks(taskList, completedStack);
-            }
-            completedTasksWindow.refreshTable(); // Refresh before showing
-            completedTasksWindow.setVisible(true);
-            // Refresh main window when completed tasks window closes/updates
-            tableModel.refresh();
+        viewCompleted.addActionListener(e -> {
+            CompletedTasks cw = new CompletedTasks(taskList, completedStack);
+            cw.setVisible(true);
         });
 
-        viewTodayButton.addActionListener(e -> {
-            showTodaysTasks();
+        addTaskBtn.addActionListener(e -> {
+            AddTaskForm form = new AddTaskForm(taskList, model);
+            form.setVisible(true);
         });
 
-        // Add some sample data for testing
-        addSampleData();
+        model.refresh();
     }
 
-    private JButton createStyledButton(String text, Font font) {
-        JButton button = new JButton(text);
-        button.setFont(font);
-        button.setBackground(new Color(0, 122, 255));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return button;
-    }
-
-    private void addSampleData() {
-        taskList.createTask(1, "Complete Java Project", "Finish the to-do list application", 
-            Task.Priority.high, Task.Status.pending, "25-11-2024");
-        taskList.createTask(2, "Buy Groceries", "Get milk, eggs, and bread", 
-            Task.Priority.medium, Task.Status.pending, "20-11-2024");
-        taskList.createTask(3, "Read Book", "Finish reading 'Clean Code'", 
-            Task.Priority.low, Task.Status.pending, "30-11-2024");
-        tableModel.refresh();
-    }
-
-    private void showTodaysTasks() {
-        // Create a simple dialog to show today's tasks
-        JDialog dialog = new JDialog(this, "Today's Tasks", true);
-        dialog.setSize(600, 400);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new BorderLayout());
-
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(32, 32, 32));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JLabel label = new JLabel("Tasks in Today's Queue:");
-        label.setFont(new Font("Montserrat", Font.BOLD, 16));
-        label.setForeground(Color.WHITE);
-        panel.add(label, BorderLayout.NORTH);
-
-        // Display queue contents
-        JTextArea textArea = new JTextArea();
-        textArea.setFont(new Font("Montserrat", Font.PLAIN, 14));
-        textArea.setBackground(new Color(45, 45, 45));
-        textArea.setForeground(Color.WHITE);
-        textArea.setEditable(false);
-
-        Task[] todayTasks = todayQueue.getAllTasks();
-        if (todayTasks.length == 0) {
-            textArea.setText("No tasks in today's queue.\n\nUse the '⭐ Add to Today' button to add tasks.");
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < todayTasks.length; i++) {
-                Task task = todayTasks[i];
-                sb.append((i + 1)).append(". ").append(task.getTitle())
-                  .append(" (").append(task.getPriority()).append(")\n");
-            }
-            textArea.setText(sb.toString());
-        }
-
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        panel.add(scrollPane, BorderLayout.CENTER);
-
-        dialog.add(panel);
-        dialog.setVisible(true);
+private JButton styledButton(String text, Color bg) {
+        JButton b = new JButton(text);
+        b.setBackground(bg);
+        b.setForeground(Color.WHITE);
+        b.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        b.setFocusPainted(false);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setOpaque(true);
+        b.setBorderPainted(false);
+        return b;
     }
 
     public static void main(String[] args) {
-        // Set system look and feel
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        SwingUtilities.invokeLater(() -> {
-            MainWindow window = new MainWindow();
-            window.setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new MainWindow().setVisible(true));
     }
 }

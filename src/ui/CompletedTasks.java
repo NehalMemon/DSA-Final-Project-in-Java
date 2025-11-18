@@ -12,6 +12,18 @@ import java.util.List;
 
 public class CompletedTasks extends JFrame {
 
+    // Theme Colors
+    private final Color BG_DARK = new Color(0x3d3b3c);
+    private final Color ACCENT = new Color(0xb592a0);
+    private final Color ACCENT2 = new Color(0x7a9e9f);
+    private final Color SUCCESS = new Color(0x6bffb8);
+    private final Color WARNING = new Color(0xbc5f04);
+    
+    // Derived Colors
+    private final Color TABLE_ROW_BG = new Color(0x2f2f2f); // Slightly lighter dark than BG_DARK
+    private final Color TABLE_HEADER_BG = ACCENT2; // Using ACCENT2 for the table header
+    private final Color UNDO_BUTTON_BG = WARNING; // Using WARNING for the Undo button
+
     // Dependency injection: You must pass the main list and the completed stack
     private TaskList mainTaskList; 
     private TaskStack completedStack;
@@ -28,19 +40,33 @@ public class CompletedTasks extends JFrame {
         setLayout(new BorderLayout());
         setLocationRelativeTo(null);
 
-        // --- Styles matching MainWindow/AddTaskForm ---
-        getContentPane().setBackground(new Color(20, 20, 20));
-        Font headerFont = new Font("Montserrat", Font.BOLD, 18);
-        Font tableFont = new Font("Montserrat", Font.PLAIN, 14);
+        // --- Styles matching MainWindow ---
+        // Use a consistent dark background for the frame content pane
+        getContentPane().setBackground(BG_DARK); 
+        
+        // Using a system-wide font for consistency with MainWindow setup
+        Font headerFont = new Font("Segoe UI", Font.BOLD, 18);
+        Font tableFont = new Font("Segoe UI", Font.PLAIN, 14);
 
         // Header Panel
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        headerPanel.setBackground(new Color(32, 32, 32));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(BG_DARK); // Dark background
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        
         JLabel titleLabel = new JLabel("Completed Tasks (Most Recent on Top)");
         titleLabel.setFont(headerFont);
-        titleLabel.setForeground(new Color(0, 122, 255));
-        headerPanel.add(titleLabel);
+        titleLabel.setForeground(ACCENT); // Use ACCENT color for the title
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+
+        // *** NEW: Refresh Button ***
+        JButton refreshBtn = styledButton("↻ Refresh", ACCENT2.darker(), headerFont.deriveFont(Font.BOLD, 12));
+        refreshBtn.addActionListener(e -> refreshTable());
+        
+        JPanel rightHeaderPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        rightHeaderPanel.setBackground(BG_DARK);
+        rightHeaderPanel.add(refreshBtn);
+        headerPanel.add(rightHeaderPanel, BorderLayout.EAST);
+
         add(headerPanel, BorderLayout.NORTH);
 
         // --- Table Setup ---
@@ -50,18 +76,18 @@ public class CompletedTasks extends JFrame {
         // Table Styling
         completedTable.setFont(tableFont);
         completedTable.setRowHeight(35);
-        completedTable.setGridColor(new Color(50, 50, 50));
-        completedTable.setBackground(new Color(32, 32, 32));
+        completedTable.setGridColor(BG_DARK.brighter()); // Grid lines slightly brighter than background
+        completedTable.setBackground(TABLE_ROW_BG); // Darker background for table rows
         completedTable.setForeground(Color.WHITE);
-        completedTable.setSelectionBackground(new Color(50, 50, 50));
+        completedTable.setSelectionBackground(ACCENT2.darker()); // Darker ACCENT2 for selection
         completedTable.setSelectionForeground(Color.WHITE);
         completedTable.setAutoCreateRowSorter(true); 
 
         // Table Header Styling
-        completedTable.getTableHeader().setBackground(new Color(45, 45, 45));
+        completedTable.getTableHeader().setBackground(TABLE_HEADER_BG); // Using ACCENT2
         completedTable.getTableHeader().setForeground(Color.WHITE);
-        completedTable.getTableHeader().setFont(headerFont.deriveFont(Font.BOLD, 14));
-        completedTable.getTableHeader().setBorder(BorderFactory.createLineBorder(new Color(50, 50, 50)));
+        completedTable.getTableHeader().setFont(headerFont.deriveFont(Font.BOLD, 15));
+        completedTable.getTableHeader().setBorder(BorderFactory.createLineBorder(BG_DARK.brighter()));
 
         // Set column widths
         completedTable.getColumnModel().getColumn(0).setPreferredWidth(50); 
@@ -113,7 +139,7 @@ public class CompletedTasks extends JFrame {
             // 3. Process the found task
             if (poppedTask != null) {
                 poppedTask.setStatus(Task.Status.pending);
-                // Assuming TaskList has an insert method that maintains list order
+                // CRITICAL FIX: Restore the task to the main list
                 mainTaskList.createTask(poppedTask); 
     
                 // 4. Refresh the display
@@ -124,8 +150,7 @@ public class CompletedTasks extends JFrame {
                     "Task '" + taskToUndo.getTitle() + "' restored to main list.", 
                     "Task Undone", JOptionPane.INFORMATION_MESSAGE);
                 
-                // NOTE: You must also refresh the main window's table model (TaskTableModel) 
-                // in the MainWindow's action listener when this CompletedTasks window is closed/updated.
+                // Note: The MainWindow's model should be refreshed when this window closes or by the user refreshing MainWindow.
             } else {
                  JOptionPane.showMessageDialog(this, 
                     "Error: Could not find task to undo.", 
@@ -138,9 +163,22 @@ public class CompletedTasks extends JFrame {
 
         // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(completedTable);
-        scrollPane.getViewport().setBackground(new Color(32, 32, 32));
+        scrollPane.getViewport().setBackground(TABLE_ROW_BG); // Apply dark background
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
+    }
+    
+    private JButton styledButton(String text, Color bg, Font font) {
+        JButton b = new JButton(text);
+        b.setBackground(bg);
+        b.setForeground(Color.WHITE);
+        b.setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
+        b.setFocusPainted(false);
+        b.setFont(font);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setOpaque(true);
+        b.setBorderPainted(false);
+        return b;
     }
     
     /**
@@ -155,7 +193,7 @@ public class CompletedTasks extends JFrame {
         public ButtonRenderer(String text) {
             setText(text);
             setOpaque(true);
-            setBackground(new Color(255, 100, 100)); // Reddish color for "Undo"
+            setBackground(UNDO_BUTTON_BG); // Use WARNING color for "Undo"
             setForeground(Color.WHITE);
             setFont(getFont().deriveFont(Font.BOLD, 12));
             setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
@@ -181,7 +219,7 @@ public class CompletedTasks extends JFrame {
 
             button = new JButton();
             button.setOpaque(true);
-            button.setBackground(new Color(255, 100, 100)); 
+            button.setBackground(UNDO_BUTTON_BG); // Use WARNING color for "Undo"
             button.setForeground(Color.WHITE);
             button.setFont(button.getFont().deriveFont(Font.BOLD, 12));
             button.setFocusPainted(false);

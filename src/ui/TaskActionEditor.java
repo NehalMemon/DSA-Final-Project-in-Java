@@ -1,118 +1,191 @@
 package ui;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.util.EventObject;
+import java.awt.Color;
+import java.awt.Cursor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import structures.Task;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font; // Import Font
+import java.awt.Point; // Import for Point
 
 public class TaskActionEditor extends DefaultCellEditor {
 
+    // Theme Colors for Buttons (Must match Renderer)
+    private final Color DETAILS_COLOR = new Color(0x3498db);
+    private final Color COMPLETE_COLOR = new Color(0x2ecc71);
+    private final Color TODAY_COLOR = new Color(0xf1c40f);
+    private final Color DELETE_COLOR = new Color(0xe74c3c);
+    
     private JPanel panel;
     private JButton detailButton, completeButton, todayButton, deleteButton;
     private TaskTableModel model;
     private JTable table;
     private Task currentTask;
 
-    // Define a font that supports emojis (e.g., Arial Unicode MS or similar system default)
-    // We'll use a larger size so the emojis are more visible
-    private static final Font EMOJI_FONT = new Font("Segoe UI Symbol", Font.PLAIN, 16);
-    // Fallback if "Segoe UI Symbol" isn't available
-    // On some systems, just "Arial" at a larger size works, but let's try a specific one first.
+    // Use a compatible font size for simple symbols
+    private static final Font ICON_FONT = new Font("Dialog", Font.BOLD, 8);
+    
+    // Store the button that was clicked
+    private JButton currentButton; 
 
     public TaskActionEditor(TaskTableModel model, JTable table) {
+        // We use an empty JTextField here, but its properties are irrelevant now
         super(new JTextField());
+
         this.model = model;
         this.table = table;
 
-        panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 2));
         panel.setOpaque(true);
-
-        detailButton = createButton("🔍", "View Details", e -> {
-            JOptionPane.showMessageDialog(table, 
-                "Viewing Task:\nTitle: " + currentTask.getTitle() + 
-                "\nPriority: " + currentTask.getPriority().name() + 
-                "\nDeadline: " + currentTask.getDeadline(), "Task Details", JOptionPane.INFORMATION_MESSAGE);
-            fireEditingStopped();
-        });
-
-        completeButton = createButton("✓", "Mark Complete", e -> {
-            if (model.markTaskComplete(currentTask.getId())) { 
-                JOptionPane.showMessageDialog(table, "Task " + currentTask.getTitle() + " marked complete and added to stack!", "Action", JOptionPane.INFORMATION_MESSAGE);
-            }
-            fireEditingStopped();
-        });
         
-        todayButton = createButton("⭐", "Add to Today", e -> {
-            // // FIX: You need to implement the logic to add the task to the TaskQueue here
-            // if (model.addToTodayQueue(currentTask)) {
-            //      JOptionPane.showMessageDialog(table, "Task " + currentTask.getTitle() + " added to today's list.", "Action", JOptionPane.INFORMATION_MESSAGE);
-            // } else {
-            //      JOptionPane.showMessageDialog(table, "Task " + currentTask.getTitle() + " is already in today's list.", "Action", JOptionPane.WARNING_MESSAGE);
-            // }
-            fireEditingStopped();
-        });
-        
-        deleteButton = createButton("🗑️", "Delete Task", e -> {
-            int confirm = JOptionPane.showConfirmDialog(table, 
-                "Are you sure you want to delete task: " + currentTask.getTitle() + "?", 
-                "Confirm Delete", JOptionPane.YES_NO_OPTION);
-            
-            if (confirm == JOptionPane.YES_OPTION) {
-                if (model.deleteTask(currentTask.getId())) { 
-                    JOptionPane.showMessageDialog(table, "Task " + currentTask.getTitle() + " deleted.", "Action", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(table, "Failed to delete task.", "Action Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-            fireEditingStopped();
-        });
+        // --- Create Styled Buttons with simple Unicode symbols ---
+        // Note: Listeners are added here to ensure the action is performed, 
+        // but the activation is handled by the manual click below.
+        detailButton = createButton("►", "View Details", e -> showDetails(), DETAILS_COLOR);
+        completeButton = createButton("✓", "Mark Complete", e -> markComplete(), COMPLETE_COLOR);
+        todayButton = createButton("★", "Add to Today", e -> addToToday(), TODAY_COLOR);
+        deleteButton = createButton("✗", "Delete", e -> deleteTask(), DELETE_COLOR);
 
         panel.add(detailButton);
         panel.add(completeButton);
         panel.add(todayButton);
-        panel.add(deleteButton); 
+        panel.add(deleteButton);
     }
 
-    private JButton createButton(String text, String tooltip, ActionListener listener) {
-        JButton button = new JButton(text);
-        button.setToolTipText(tooltip);
-        button.setPreferredSize(new Dimension(30, 25));
-        button.setFocusable(false);
-        button.addActionListener(listener);
+    private JButton createButton(String text, String tooltip, ActionListener listener, Color bgColor) {
+        JButton b = new JButton(text);
+        b.setToolTipText(tooltip);
+        b.setPreferredSize(new Dimension(34, 28));
+        b.setFocusable(false);
+        b.setFont(ICON_FONT); 
+        b.addActionListener(listener); // Keep the listener to handle the action logic
         
-        // --- FIX: Set the emoji-supporting font here ---
-        button.setFont(EMOJI_FONT);
-        // The buttons are small, we can set the text to be empty to show just the icon/emoji
-        // If the emoji is still not visible, you might need to try a different font name 
-        // that is common on your specific operating system (e.g., "Arial Unicode MS").
+        // Apply distinct color and ensure visibility
+        b.setBackground(bgColor);
+        b.setForeground(Color.WHITE);
+        b.setBorderPainted(false);
+        b.setOpaque(true);
+        b.setCursor(new Cursor(java.awt.Cursor.HAND_CURSOR));
         
-        return button;
+        return b;
     }
 
+    // *** CRITICAL FIX 1: Allow editing on a single mouse press ***
+    @Override
+    public boolean isCellEditable(EventObject anEvent) {
+        if (anEvent instanceof MouseEvent) {
+            // Check if it's the action column we care about
+            if (table.columnAtPoint(((MouseEvent)anEvent).getPoint()) == 3) { 
+                return ((MouseEvent)anEvent).getClickCount() >= 1;
+            }
+        }
+        return false; // Only allow editing in the action column on single click
+    }
+
+    // *** CRITICAL FIX 2: Activate the button action when the editor component loads ***
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        // Need to convert the view row index to the model row index if the table is sorted
         int modelRow = table.convertRowIndexToModel(row);
         currentTask = model.getTaskAt(modelRow);
+
+        // Get the row background from the renderer
+        Component rowRenderer = table.getDefaultRenderer(Object.class)
+                .getTableCellRendererComponent(table, value, isSelected, true, row, column);
+        panel.setBackground(rowRenderer.getBackground());
         
-        // Use the renderer to get the row color and apply it to the editor panel
-        Color rowColor = table.getDefaultRenderer(Object.class).getTableCellRendererComponent(table, value, isSelected, false, row, column).getBackground();
-        panel.setBackground(rowColor);
+        // Find which button was pressed and manually dispatch the action
+        // We look for the mouse event that triggered the editor
+        
+        // The last mouse event is often tricky to get reliably. A common workaround
+        // is to fire the action *after* the component is added/validated.
+        SwingUtilities.invokeLater(() -> {
+            // Get the point of the mouse event that started the editing
+            Point point = table.getMousePosition();
+            if (point != null) {
+                // Convert table coordinates to the panel's coordinates
+                Point panelPoint = SwingUtilities.convertPoint(table, point, panel);
+                Component component = panel.getComponentAt(panelPoint);
+                
+                if (component instanceof JButton) {
+                    currentButton = (JButton)component;
+                    // Manually fire the action immediately
+                    currentButton.doClick(0); // Use 0 delay
+                }
+            }
+            // CRUCIAL: Stop editing immediately after the click event is processed.
+            // This prevents the table from holding the cell in "edit mode"
+            fireEditingStopped(); 
+        });
         
         return panel;
     }
 
+    // *** FIX 3: Ensure we stop editing correctly after the action fires ***
+    @Override
+    public boolean stopCellEditing() {
+        // Return true to successfully stop editing.
+        return true; 
+    }
+
     @Override
     public Object getCellEditorValue() {
-        return ""; 
+        return null;
+    }
+    
+    // ---- actions ----
+    // Removed fireEditingStopped() from actions since it's now in getTableCellEditorComponent
+
+    private void showDetails() {
+        if (currentTask == null) return;
+        JOptionPane.showMessageDialog(table,
+                "Title: " + currentTask.getTitle()
+                + "\nDescription: " + currentTask.getDescription()
+                + "\nPriority: " + currentTask.getPriority()
+                + "\nDeadline: " + currentTask.getDeadline()
+                + "\nStatus: " + currentTask.getStatus(),
+                "Task Details",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void markComplete() {
+        if (currentTask == null) return;
+        boolean ok = model.markTaskComplete(currentTask.getId());
+        if (ok) {
+            JOptionPane.showMessageDialog(table, "Marked complete: " + currentTask.getTitle(), "Done", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(table, "Failed to mark complete.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void addToToday() {
+        if (currentTask == null) return;
+        boolean ok = model.addToTodayQueue(currentTask);
+        if (ok) {
+            JOptionPane.showMessageDialog(table, "Added to today's tasks: " + currentTask.getTitle(), "Added", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(table, "Already in today's list or failed to add.", "Info", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void deleteTask() {
+        if (currentTask == null) return;
+        int confirm = JOptionPane.showConfirmDialog(table, "Delete task: " + currentTask.getTitle() + " ?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            boolean ok = model.deleteTask(currentTask.getId());
+            if (ok) JOptionPane.showMessageDialog(table, "Deleted.", "Deleted", JOptionPane.INFORMATION_MESSAGE);
+            else JOptionPane.showMessageDialog(table, "Delete failed.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
