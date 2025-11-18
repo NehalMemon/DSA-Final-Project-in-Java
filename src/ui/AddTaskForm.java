@@ -2,8 +2,9 @@ package ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import structures.Task;
 import structures.TaskList;
 
@@ -11,17 +12,17 @@ public class AddTaskForm extends JFrame {
 
     private TaskList taskList;
     private TaskTableModel model; 
-    private int nextId = 5; // Start ID after the sample data in MainApp (adjust if needed)
+    private int nextId = 1; // Default starting ID
 
     private JTextField titleField;
     private JTextArea descriptionArea;
     private JComboBox<String> priorityBox;
-    private JComboBox<String> statusBox;
-    private JTextField dueDateField;
-    private JTextField assigneeField;
-    private JButton addButton; // FIX: Declared addButton here
+    private JTextField dueDateField; // Keeping as JTextField, enforcing DD-MM-YYYY
+    private JButton addButton;
 
-    // Updated Constructor to accept TaskList and TaskTableModel
+    // Pattern for strict DD-MM-YYYY format validation
+    private static final Pattern DATE_PATTERN = Pattern.compile("^\\d{2}-\\d{2}-\\d{4}$");
+
     public AddTaskForm(TaskList taskList, TaskTableModel model) { 
         this.taskList = taskList;
         this.model = model;
@@ -33,7 +34,7 @@ public class AddTaskForm extends JFrame {
         }
 
         setTitle("Add New Task");
-        setSize(480, 620);
+        setSize(480, 500); // Reduced height since fields are removed
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLayout(new GridBagLayout());
         setLocationRelativeTo(null);
@@ -55,31 +56,25 @@ public class AddTaskForm extends JFrame {
 
         // --- MODERN FONT ---
         Font font = new Font("Montserrat", Font.PLAIN, 14);
-
-        // Label Style
         UIManager.put("Label.foreground", new Color(230, 230, 230));
 
         // TextField Style
         titleField = makeTextField(font);
         descriptionArea = makeTextArea(font);
         dueDateField = makeTextField(font);
-        assigneeField = makeTextField(font);
 
-        // Priority enums are low, medium, high (must match Task.Priority)
+        // Priority enums are low, medium, high (match Task.Priority)
         priorityBox = makeCombo(new String[]{"low", "medium", "high"}, font); 
-        // Status enums are pending, completed (match Task.Status)
-        statusBox = makeCombo(new String[]{"pending", "completed"}, font);
 
         // --- Add Components ---
         addField(panel, gbc, "Task Title:", titleField, font);
         addArea(panel, gbc, "Task Description:", descriptionArea, font);
         addField(panel, gbc, "Priority:", priorityBox, font);
-        addField(panel, gbc, "Status:", statusBox, font);
-        addField(panel, gbc, "Due Date (yyyy-mm-dd):", dueDateField, font);
-        addField(panel, gbc, "Assigned To:", assigneeField, font);
-
-        // Modern Button (Now using the declared field)
-        addButton = new JButton("Add Task"); // FIX: Initialization of addButton
+        // UPDATED DATE PROMPT
+        addField(panel, gbc, "Due Date (DD-MM-YYYY):", dueDateField, font); 
+        
+        // Modern Button
+        addButton = new JButton("Add Task");
         addButton.setFont(font);
         addButton.setBackground(new Color(0, 122, 255));
         addButton.setForeground(Color.WHITE);
@@ -92,29 +87,30 @@ public class AddTaskForm extends JFrame {
         add(panel);
 
         // Button Action
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        addButton.addActionListener(e -> {
+            String title = titleField.getText().trim();
+            String desc = descriptionArea.getText().trim();
+            String priorityStr = (String) priorityBox.getSelectedItem();
+            String dueDate = dueDateField.getText().trim();
 
-                String title = titleField.getText().trim();
-                String desc = descriptionArea.getText().trim();
-                String priorityStr = (String) priorityBox.getSelectedItem();
-                String statusStr = (String) statusBox.getSelectedItem();
-                String dueDate = dueDateField.getText().trim();
-                String assignee = assigneeField.getText().trim();
-
-                if (title.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Title is required!", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                saveTask(title, desc, priorityStr, statusStr, dueDate, assignee);
-
-                JOptionPane.showMessageDialog(null, "Task added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-
-                clearForm(); // FIX: Now the method is defined below
-                setVisible(false);
+            if (title.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Title is required!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+            
+            // DATE VALIDATION
+            if (!DATE_PATTERN.matcher(dueDate).matches()) {
+                JOptionPane.showMessageDialog(null, "Due Date must be in DD-MM-YYYY format!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Status is implicitly 'pending' since we removed the field
+            saveTask(title, desc, priorityStr, Task.Status.pending.name(), dueDate);
+
+            JOptionPane.showMessageDialog(null, "Task added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+            clearForm();
+            setVisible(false);
         });
     }
 
@@ -174,7 +170,6 @@ public class AddTaskForm extends JFrame {
         titleField.setText("");
         descriptionArea.setText("");
         priorityBox.setSelectedIndex(0);
-        statusBox.setSelectedIndex(0);
         dueDateField.setText("");
     }
 

@@ -1,6 +1,7 @@
 package structures;
 
-
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskStack {
     Task[] stack;
@@ -13,6 +14,10 @@ public class TaskStack {
 
     public boolean isEmpty(){
         return top == -1;
+    }
+
+    public int size(){
+        return top + 1;
     }
 
     public void push(Task obj){
@@ -29,5 +34,13 @@ public class TaskStack {
        stack[top] = null;
        top--;
        return poppedTask;
+    }
+
+    public List<Task> getTasks(){
+        List<Task> displayList = new ArrayList<>(size());
+        for(int i = top; i >= 0; i--){
+            displayList.add(stack[i]);
+        }
+        return displayList;
     }
 }
