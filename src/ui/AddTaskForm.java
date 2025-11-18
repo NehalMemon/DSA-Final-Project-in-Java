@@ -1,7 +1,7 @@
 package ui;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 import structures.Task;
 import structures.TaskList;
 
@@ -21,26 +21,21 @@ public class AddTaskForm extends JFrame {
         this.taskList = taskList;
         this.model = model;
 
-        Task lastTask = taskList.get(taskList.size() - 1);
-        if (lastTask != null) {
-            this.nextId = lastTask.getId() + 1;
-        }
-
-        setTitle("Add New Task");
+        setTitle("➕ Add New Task");
         setSize(540, 600);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        /* ------------------ Modern Gradient Background ------------------ */
+        // Neon gradient background
         JPanel backgroundPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 GradientPaint gradient = new GradientPaint(
-                        0, 0, new Color(24, 30, 54),
-                        0, getHeight(), new Color(45, 55, 72)
+                        0, 0, new Color(0, 255, 255, 50),
+                        0, getHeight(), new Color(255, 0, 255, 50)
                 );
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
@@ -48,14 +43,12 @@ public class AddTaskForm extends JFrame {
         };
         backgroundPanel.setLayout(new GridBagLayout());
 
-        /* --------------------- Main Card Panel ------------------------- */
         JPanel card = new JPanel();
         card.setLayout(new GridBagLayout());
         card.setPreferredSize(new Dimension(430, 520));
-        card.setBackground(new Color(255, 255, 255, 240));
-
+        card.setBackground(new Color(25, 25, 50, 220));
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
+                BorderFactory.createLineBorder(new Color(0, 255, 255), 2, true),
                 BorderFactory.createEmptyBorder(25, 30, 30, 30)
         ));
 
@@ -66,17 +59,14 @@ public class AddTaskForm extends JFrame {
         gbc.gridy = 0;
         gbc.weightx = 1;
 
-        /* ------------------------ Header -------------------------- */
         JLabel header = new JLabel("Create New Task", SwingConstants.CENTER);
         header.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        header.setForeground(new Color(33, 42, 62));
+        header.setForeground(new Color(0, 255, 255));
         card.add(header, gbc);
 
-        /* ------------------------ UI Fonts -------------------------- */
         Font labelFont = new Font("Segoe UI", Font.BOLD, 13);
         Font fieldFont = new Font("Segoe UI", Font.PLAIN, 14);
 
-        /* ------------------------ Components ------------------------ */
         gbc.gridy++;
         titleField = createTextField(fieldFont);
         addField(card, gbc, "Task Title", titleField, labelFont);
@@ -90,25 +80,20 @@ public class AddTaskForm extends JFrame {
         dueDateField = createTextField(fieldFont);
         addField(card, gbc, "Due Date (DD-MM-YYYY)", dueDateField, labelFont);
 
-        /* ------------------------ Add Button ----------------------- */
+        // Add Button
         addButton = new JButton("Add Task");
         addButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
         addButton.setFocusPainted(false);
         addButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addButton.setBackground(new Color(59, 130, 246));
-        addButton.setForeground(Color.WHITE);
-        addButton.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
-
-        // Rounded button
-        addButton.setBorder(BorderFactory.createLineBorder(new Color(59, 130, 246), 1, true));
-
-        // Hover effect
+        addButton.setBackground(new Color(0, 255, 255));
+        addButton.setForeground(Color.BLACK);
+        addButton.setBorder(BorderFactory.createLineBorder(new Color(0, 255, 255), 2, true));
         addButton.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                addButton.setBackground(new Color(37, 99, 235));
+                addButton.setBackground(new Color(0, 255, 255, 180));
             }
             public void mouseExited(java.awt.event.MouseEvent e) {
-                addButton.setBackground(new Color(59, 130, 246));
+                addButton.setBackground(new Color(0, 255, 255));
             }
         });
 
@@ -119,22 +104,14 @@ public class AddTaskForm extends JFrame {
         backgroundPanel.add(card, new GridBagConstraints());
         add(backgroundPanel, BorderLayout.CENTER);
 
-        /* ------------------ Button Action Logic ------------------ */
         addButton.addActionListener(e -> {
             String title = titleField.getText().trim();
             String desc = descriptionArea.getText().trim();
             String priorityStr = (String) priorityBox.getSelectedItem();
             String dueDate = dueDateField.getText().trim();
 
-            if (title.isEmpty()) {
-                showError("Title is required!");
-                return;
-            }
-
-            if (!dueDate.matches("^\\d{2}-\\d{2}-\\d{4}$")) {
-                showError("Date must be in DD-MM-YYYY format.");
-                return;
-            }
+            if (title.isEmpty()) { showError("Title is required!"); return; }
+            if (!dueDate.matches("^\\d{2}-\\d{2}-\\d{4}$")) { showError("Date must be in DD-MM-YYYY format."); return; }
 
             taskList.createTask(nextId++, title, desc,
                     Task.Priority.valueOf(priorityStr),
@@ -149,17 +126,12 @@ public class AddTaskForm extends JFrame {
         });
     }
 
-    /* ==================================================================
-                           UI HELPER FUNCTIONS
-       ================================================================== */
-
     private JTextField createTextField(Font font) {
         JTextField field = new JTextField();
         field.setFont(font);
-        field.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
+        field.setBorder(BorderFactory.createLineBorder(new Color(0, 255, 255), 2, true));
+        field.setBackground(new Color(15, 15, 25));
+        field.setForeground(Color.WHITE);
         return field;
     }
 
@@ -168,17 +140,18 @@ public class AddTaskForm extends JFrame {
         area.setFont(font);
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
-        area.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
+        area.setBorder(BorderFactory.createLineBorder(new Color(0, 255, 255), 2, true));
+        area.setBackground(new Color(15, 15, 25));
+        area.setForeground(Color.WHITE);
         return area;
     }
 
     private JComboBox<String> createCombo(String[] list, Font font) {
         JComboBox<String> box = new JComboBox<>(list);
         box.setFont(font);
-        box.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true));
+        box.setBorder(BorderFactory.createLineBorder(new Color(0, 255, 255), 2, true));
+        box.setBackground(new Color(15, 15, 25));
+        box.setForeground(Color.WHITE);
         return box;
     }
 
@@ -186,7 +159,7 @@ public class AddTaskForm extends JFrame {
         gbc.gridy++;
         JLabel lbl = new JLabel(label);
         lbl.setFont(font);
-        lbl.setForeground(new Color(70, 80, 100));
+        lbl.setForeground(new Color(0, 255, 255));
         panel.add(lbl, gbc);
 
         gbc.gridy++;
@@ -197,7 +170,7 @@ public class AddTaskForm extends JFrame {
         gbc.gridy++;
         JLabel lbl = new JLabel(label);
         lbl.setFont(font);
-        lbl.setForeground(new Color(70, 80, 100));
+        lbl.setForeground(new Color(0, 255, 255));
         panel.add(lbl, gbc);
 
         gbc.gridy++;
@@ -206,7 +179,6 @@ public class AddTaskForm extends JFrame {
         panel.add(pane, gbc);
     }
 
-    /* ------------------------ Dialog Helpers ------------------------ */
     private void showError(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }

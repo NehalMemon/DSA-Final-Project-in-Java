@@ -2,9 +2,8 @@ package ui;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.JTableHeader;
 import structures.Task;
 import structures.TaskList;
 import structures.TaskQueue;
@@ -21,42 +20,43 @@ public class MainWindow extends JFrame {
 
     private AddTaskForm addTaskForm;
     private CompletedTasks completedTasksWindow;
+    private TodayTasksWindow todayTasksWindow;
 
     public MainWindow() {
-        // Initialize data structures
+        // Initialize data
         taskList = new TaskList();
         completedStack = new TaskStack();
         todayQueue = new TaskQueue();
 
-        // Setup main window
+        // Window setup
         setTitle("Task Manager - To-Do List");
         setSize(1000, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         setLocationRelativeTo(null);
+        getContentPane().setBackground(new Color(42, 42, 42)); // dark background
 
-        // Neon theme colors
-        Color neonBlue = new Color(0, 255, 255);
-        Color neonPink = new Color(255, 0, 255);
-        Color darkBg = new Color(15, 15, 25);
+        // Fonts
+        Font headerFont = new Font("Segoe UI", Font.BOLD, 22);
+        Font buttonFont = new Font("Segoe UI", Font.PLAIN, 14);
 
-        // --- HEADER PANEL ---
+        // --- Header Panel ---
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(darkBg);
-        headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        headerPanel.setBackground(new Color(30, 30, 35));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JLabel titleLabel = new JLabel("📋 My Task Manager");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(neonBlue);
+        titleLabel.setFont(headerFont);
+        titleLabel.setForeground(new Color(0, 255, 255));
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
-        // Top-right buttons
+        // Buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        buttonPanel.setBackground(darkBg);
+        buttonPanel.setBackground(new Color(30, 30, 35));
 
-        JButton addTaskButton = createStyledButton("+ Add Task", neonBlue);
-        JButton viewCompletedButton = createStyledButton("✓ View Completed", neonPink);
-        JButton viewTodayButton = createStyledButton("⭐ Today's Tasks", neonBlue);
+        JButton addTaskButton = createNeonButton("+ Add Task", buttonFont);
+        JButton viewCompletedButton = createNeonButton("✓ View Completed", buttonFont);
+        JButton viewTodayButton = createNeonButton("⭐ Today's Tasks", buttonFont);
 
         buttonPanel.add(addTaskButton);
         buttonPanel.add(viewCompletedButton);
@@ -65,54 +65,69 @@ public class MainWindow extends JFrame {
         headerPanel.add(buttonPanel, BorderLayout.EAST);
         add(headerPanel, BorderLayout.NORTH);
 
-        // --- TABLE SETUP ---
+        // --- Table ---
         tableModel = new TaskTableModel(taskList);
         taskTable = new JTable(tableModel);
-
-        // Table styling
         taskTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        taskTable.setRowHeight(42);
-        taskTable.setGridColor(new Color(50, 50, 50));
+        taskTable.setRowHeight(45);
         taskTable.setShowGrid(true);
-        taskTable.setBackground(darkBg);
-        taskTable.setForeground(Color.WHITE);
-        taskTable.setSelectionBackground(new Color(0, 255, 255, 80));
+        taskTable.setGridColor(new Color(60, 60, 60));
+        taskTable.setSelectionBackground(new Color(0, 255, 255, 60));
         taskTable.setSelectionForeground(Color.BLACK);
+        taskTable.setBackground(new Color(42, 42, 42));
+        taskTable.setForeground(Color.WHITE);
+        taskTable.setAutoCreateRowSorter(true);
 
-        // Table header
-        JTableHeader header = taskTable.getTableHeader();
-        header.setBackground(new Color(25, 25, 40));
-        header.setForeground(neonBlue);
-        header.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        header.setReorderingAllowed(false);
+        // Table Header
+        taskTable.getTableHeader().setBackground(new Color(35, 35, 40));
+        taskTable.getTableHeader().setForeground(new Color(0, 255, 255));
+        taskTable.getTableHeader().setFont(headerFont.deriveFont(Font.BOLD, 15));
+        taskTable.getTableHeader().setBorder(new LineBorder(new Color(0, 255, 255)));
 
         // Column widths
-        taskTable.getColumnModel().getColumn(0).setPreferredWidth(300);
-        taskTable.getColumnModel().getColumn(1).setPreferredWidth(100);
-        taskTable.getColumnModel().getColumn(2).setPreferredWidth(150);
-        taskTable.getColumnModel().getColumn(3).setPreferredWidth(200);
+        taskTable.getColumnModel().getColumn(0).setPreferredWidth(300); // Title
+        taskTable.getColumnModel().getColumn(1).setPreferredWidth(100); // Priority
+        taskTable.getColumnModel().getColumn(2).setPreferredWidth(150); // Deadline
+        taskTable.getColumnModel().getColumn(3).setPreferredWidth(200); // Actions
 
-        // Custom row renderer
-        taskTable.setDefaultRenderer(Object.class, new TaskRowRenderer(tableModel, new Color(0, 255, 255, 40)));
+        // Renderer for neon rows
+        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (isSelected) {
+                    c.setBackground(new Color(0, 255, 255, 50));
+                    c.setForeground(Color.BLACK);
+                } else if (row % 2 == 0) {
+                    c.setBackground(new Color(45, 45, 50));
+                    c.setForeground(Color.WHITE);
+                } else {
+                    c.setBackground(new Color(42, 42, 45));
+                    c.setForeground(Color.WHITE);
+                }
+                return c;
+            }
+        };
+        for (int i = 0; i < tableModel.getColumnCount(); i++) {
+            taskTable.getColumnModel().getColumn(i).setCellRenderer(renderer);
+        }
 
-        // Scroll pane
+        // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(taskTable);
-        scrollPane.setViewportBorder(null);
-        scrollPane.getViewport().setBackground(darkBg);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+        scrollPane.getViewport().setBackground(new Color(42, 42, 42));
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- BUTTON ACTIONS ---
+        // --- Button Actions ---
         addTaskButton.addActionListener(e -> {
-            if (addTaskForm == null) {
-                addTaskForm = new AddTaskForm(taskList, tableModel);
-            }
+            if (addTaskForm == null) addTaskForm = new AddTaskForm(taskList, tableModel);
             addTaskForm.setVisible(true);
         });
 
         viewCompletedButton.addActionListener(e -> {
-            if (completedTasksWindow == null) {
+            if (completedTasksWindow == null)
                 completedTasksWindow = new CompletedTasks(taskList, completedStack);
-            }
             completedTasksWindow.refreshTable();
             completedTasksWindow.setVisible(true);
             tableModel.refresh();
@@ -124,14 +139,26 @@ public class MainWindow extends JFrame {
         addSampleData();
     }
 
-    private JButton createStyledButton(String text, Color bgColor) {
+    private JButton createNeonButton(String text, Font font) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(bgColor);
+        button.setFont(font);
+        button.setBackground(new Color(0, 255, 255));
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
-        button.setBorder(new EmptyBorder(10, 20, 10, 20));
+        button.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(new Color(0, 200, 200), 2, true),
+                BorderFactory.createEmptyBorder(8, 15, 8, 15)
+        ));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // Hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                button.setBackground(new Color(0, 200, 255));
+            }
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                button.setBackground(new Color(0, 255, 255));
+            }
+        });
         return button;
     }
 
@@ -152,8 +179,8 @@ public class MainWindow extends JFrame {
         dialog.setLayout(new BorderLayout());
 
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(20, 20, 30));
-        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        panel.setBackground(new Color(42, 42, 42));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JLabel label = new JLabel("Tasks in Today's Queue:");
         label.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -162,13 +189,13 @@ public class MainWindow extends JFrame {
 
         JTextArea textArea = new JTextArea();
         textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textArea.setBackground(new Color(25, 25, 35));
+        textArea.setBackground(new Color(45, 45, 50));
         textArea.setForeground(Color.WHITE);
         textArea.setEditable(false);
 
         Task[] todayTasks = todayQueue.getAllTasks();
         if (todayTasks.length == 0) {
-            textArea.setText("No tasks in today's queue.\nUse the '⭐ Add to Today' button to add tasks.");
+            textArea.setText("No tasks in today's queue.\n\nUse the '⭐ Add to Today' button to add tasks.");
         } else {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < todayTasks.length; i++) {
@@ -181,41 +208,12 @@ public class MainWindow extends JFrame {
 
         JScrollPane scrollPane = new JScrollPane(textArea);
         panel.add(scrollPane, BorderLayout.CENTER);
+
         dialog.add(panel);
         dialog.setVisible(true);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MainWindow window = new MainWindow();
-            window.setVisible(true);
-        });
-    }
-
-    // --- Custom Row Renderer for neon effect ---
-    class TaskRowRenderer extends DefaultTableCellRenderer {
-        private TaskTableModel model;
-        private Color highlightColor;
-
-        public TaskRowRenderer(TaskTableModel model, Color highlightColor) {
-            this.model = model;
-            this.highlightColor = highlightColor;
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus,
-                                                       int row, int column) {
-            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            if (isSelected) {
-                c.setBackground(new Color(0, 255, 255, 80));
-            } else if (row % 2 == 0) {
-                c.setBackground(highlightColor);
-            } else {
-                c.setBackground(new Color(15, 15, 25));
-            }
-            c.setForeground(Color.WHITE);
-            return c;
-        }
+        SwingUtilities.invokeLater(() -> new MainWindow().setVisible(true));
     }
 }
