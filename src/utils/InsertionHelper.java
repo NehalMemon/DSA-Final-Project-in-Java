@@ -43,14 +43,14 @@ public class InsertionHelper {
             current = current.next;
         }
     
-        // Safe debug print
-        if (current.next != null) {
-            System.out.println(
-                    DateHelper.dateAsInt(current.next.getDeadline()) +
-                    "   " +
-                    nodeDate
-            );
-        }
+        // // Safe debug print
+        // if (current.next != null) {
+        //     System.out.println(
+        //             DateHelper.dateAsInt(current.next.getDeadline()) +
+        //             "   " +
+        //             nodeDate
+        //     );
+        // }
     
         // Case 3: Insert node
         node.next = current.next;
