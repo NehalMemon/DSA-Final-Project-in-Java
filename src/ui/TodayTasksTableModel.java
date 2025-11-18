@@ -1,8 +1,8 @@
 package ui;
 
+import javax.swing.table.AbstractTableModel;
 import structures.Task;
 import structures.TaskQueue;
-import javax.swing.table.AbstractTableModel;
 
 /**
  * Table Model for Today's Tasks (Queue).
@@ -51,29 +51,31 @@ public class TodayTasksTableModel extends AbstractTableModel {
         
         switch (columnIndex) {
             case 0: return "#" + (rowIndex + 1); // Position in queue
-            case 1: return task.getId();
-            case 2: return task.getTitle();
-            case 3: return task.getPriority().name();
-            case 4: return task.getDeadline();
-            case 5: return "Actions"; // Placeholder for buttons
+            case 1: return task.getId(); // ID as Integer
+            case 2: return task.getTitle(); // Title as String
+            case 3: return task.getPriority().name(); // Priority as String
+            case 4: return task.getDeadline(); // Deadline as String
+            case 5: return "Actions"; // Placeholder for buttons/actions
             default: return null;
         }
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        if (columnIndex == 0 || columnIndex == 5) {
-            return String.class;
+        switch (columnIndex) {
+            case 0: return String.class; // Position
+            case 1: return Integer.class; // ID
+            case 2: return String.class; // Title
+            case 3: return String.class; // Priority
+            case 4: return String.class; // Due Date
+            case 5: return String.class; // Actions placeholder
+            default: return Object.class;
         }
-        if (columnIndex == 1) {
-            return Integer.class;
-        }
-        return String.class;
     }
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        // Only the Actions column (index 5) is editable/clickable
+        // Only the Actions column is editable for button actions
         return columnIndex == 5;
     }
 

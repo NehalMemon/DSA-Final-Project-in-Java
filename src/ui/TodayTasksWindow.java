@@ -1,12 +1,13 @@
 package ui;
 
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import javax.swing.*; // Import for custom renderer
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import structures.Task;
-import structures.TaskQueue;
-import structures.TaskStack;
 import structures.TaskList;
+import structures.TaskQueue; // <-- Add this import
+import structures.TaskStack;
 
 public class TodayTasksWindow extends JFrame {
 
@@ -56,12 +57,18 @@ public class TodayTasksWindow extends JFrame {
 
         // Table Styling
         todayTable.setFont(tableFont);
-        todayTable.setRowHeight(35);
+        todayTable.setRowHeight(40);
         todayTable.setGridColor(new Color(50, 50, 50));
         todayTable.setBackground(new Color(32, 32, 32));
         todayTable.setForeground(Color.WHITE);
         todayTable.setSelectionBackground(new Color(50, 50, 50));
         todayTable.setSelectionForeground(Color.WHITE);
+        todayTable.setFillsViewportHeight(true);
+        todayTable.setShowGrid(false);
+        todayTable.setIntercellSpacing(new Dimension(0, 0));
+
+        // Row striping
+        todayTable.setDefaultRenderer(Object.class, new StripedRowRenderer());
 
         // Table Header Styling
         todayTable.getTableHeader().setBackground(new Color(45, 45, 45));
@@ -80,7 +87,6 @@ public class TodayTasksWindow extends JFrame {
         // --- Button Renderer and Editor for Actions column ---
         TodayActionRenderer renderer = new TodayActionRenderer();
         todayTable.getColumn("Actions").setCellRenderer(renderer);
-        
         TodayActionEditor editor = new TodayActionEditor(new JTextField());
         todayTable.getColumn("Actions").setCellEditor(editor);
 
@@ -118,13 +124,33 @@ public class TodayTasksWindow extends JFrame {
         }
     }
 
+    // --- Custom renderer for row striping ---
+    class StripedRowRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (!isSelected) {
+                if (row % 2 == 0) {
+                    c.setBackground(new Color(40, 40, 40));
+                } else {
+                    c.setBackground(new Color(30, 30, 30));
+                }
+            } else {
+                c.setBackground(table.getSelectionBackground());
+            }
+            c.setForeground(Color.WHITE);
+            return c;
+        }
+    }
+
     // --- Action Renderer Class (Draws buttons) ---
     class TodayActionRenderer extends JPanel implements TableCellRenderer {
         private JButton completeButton;
         private JButton removeButton;
 
         public TodayActionRenderer() {
-            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+            setLayout(new FlowLayout(FlowLayout.CENTER, 8, 0));
             setOpaque(true);
 
             completeButton = createButton("✓ Complete", new Color(100, 200, 100));
@@ -142,6 +168,16 @@ public class TodayTasksWindow extends JFrame {
             button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             button.setFocusPainted(false);
             button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            button.setBorder(BorderFactory.createLineBorder(bgColor.darker(), 1, true));
+            // Optional hover effect
+            button.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    button.setBackground(bgColor.brighter());
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    button.setBackground(bgColor);
+                }
+            });
             return button;
         }
 
@@ -168,38 +204,32 @@ public class TodayTasksWindow extends JFrame {
             super(textField);
             setClickCountToStart(1);
 
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
             panel.setOpaque(true);
 
             completeButton = createButton("✓ Complete", new Color(100, 200, 100));
             removeButton = createButton("✗ Remove", new Color(255, 100, 100));
 
-            // Complete button - dequeue and mark as completed
+            // Complete button logic
             completeButton.addActionListener(e -> {
                 Task task = todayQueue.dequeue();
                 if (task != null) {
-                    // Mark as completed and push to stack
                     task.setStatus(Task.Status.completed);
                     completedStack.push(task);
-                    
-                    // Remove from main list if it exists there
                     mainTaskList.deleteTask(task.getId());
-                    
                     JOptionPane.showMessageDialog(TodayTasksWindow.this,
                         "Task '" + task.getTitle() + "' completed and moved to completed stack!",
                         "Task Completed", JOptionPane.INFORMATION_MESSAGE);
-                    
                     refreshTable();
                 }
                 fireEditingStopped();
             });
 
-            // Remove button - just dequeue without completing
+            // Remove button logic
             removeButton.addActionListener(e -> {
                 int confirm = JOptionPane.showConfirmDialog(TodayTasksWindow.this,
                     "Remove this task from today's queue?\n(Task will remain in main list)",
                     "Confirm Remove", JOptionPane.YES_NO_OPTION);
-
                 if (confirm == JOptionPane.YES_OPTION) {
                     Task task = todayQueue.dequeue();
                     if (task != null) {
@@ -224,6 +254,15 @@ public class TodayTasksWindow extends JFrame {
             button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             button.setFocusPainted(false);
             button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            button.setBorder(BorderFactory.createLineBorder(bgColor.darker(), 1, true));
+            button.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    button.setBackground(bgColor.brighter());
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    button.setBackground(bgColor);
+                }
+            });
             return button;
         }
 
@@ -242,6 +281,18 @@ public class TodayTasksWindow extends JFrame {
         @Override
         public Object getCellEditorValue() {
             return "";
+        }
+
+        private void refreshTable() {
+            tableModel.refresh();
+            // Update queue size label
+            Component[] components = ((JPanel)getContentPane().getComponent(0)).getComponents();
+            for (Component comp : components) {
+                if (comp instanceof JLabel && ((JLabel)comp).getText().contains("Tasks in queue")) {
+                    ((JLabel)comp).setText("Tasks in queue: " + todayQueue.size() + " / 10");
+                    break;
+                }
+            }
         }
     }
 }

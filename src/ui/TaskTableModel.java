@@ -15,22 +15,17 @@ public class TaskTableModel extends AbstractTableModel {
         "Actions" // Column for action buttons
     };
 
-    // Constructor to receive the data list
     public TaskTableModel(TaskList list) {
         this.taskList = list;
     }
     
-    // --- AbstractTableModel Implementation ---
-    
     @Override
     public int getRowCount() {
-        // FIX: Returns the size of the underlying linked list
         return taskList.size(); 
     }
 
     @Override
     public int getColumnCount() {
-        // FIX: Returns the number of columns defined
         return columns.length;
     }
 
@@ -41,39 +36,50 @@ public class TaskTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        // Retrieve the Task object using the row index
         Task task = taskList.get(rowIndex);
 
         switch (columnIndex) {
             case 0: return task.getTitle();
-            case 1: return task.getPriority().name();
-            case 2: return task.getDeadline();
-            case 3: return "⋯"; // Placeholder for the action buttons
+            case 1: return task.getPriority().name(); // Showing Priority as String
+            case 2: return task.getDeadline(); // Assuming it's a String or formatted date
+            case 3: return "⋯"; // Placeholder for actions
         }
         return null;
     }
-    
-    // --- Custom Methods for UI/Actions ---
 
-    // Used by Action Renderer/Editor to get the task object
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        switch (columnIndex) {
+            case 0: return String.class; // Title
+            case 1: return String.class; // Priority
+            case 2: return String.class; // Deadline
+            case 3: return Object.class; // Actions (button)
+            default: return Object.class;
+        }
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        // Only the Actions column should be editable for button rendering
+        return columnIndex == 3;
+    }
+
     public Task getTaskAt(int row) {
         return taskList.get(row);
     }
-    
-    /** Action: Marks a task complete and refreshes the table. */
+
     public boolean markTaskComplete(int taskId) {
-        boolean success = taskList.markComplete(taskId); // Calls the TaskList structure
+        boolean success = taskList.markComplete(taskId);
         if (success) {
-            fireTableDataChanged(); // Notify the JTable to redraw
+            fireTableDataChanged();
         }
         return success;
     }
 
-    /** Action: Deletes a task and refreshes the table. */
     public boolean deleteTask(int taskId) {
-        boolean success = taskList.deleteTask(taskId); // Calls the TaskList structure
+        boolean success = taskList.deleteTask(taskId);
         if (success) {
-            fireTableDataChanged(); // Notify the JTable to redraw (will reduce row count)
+            fireTableDataChanged();
         }
         return success;
     }
