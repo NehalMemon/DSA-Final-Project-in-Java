@@ -1,17 +1,17 @@
 package structures;
 
 import structures.Task;
-import java.util.Arrays; // Needed for array manipulation
+import java.util.Arrays; 
 
 public class TaskQueue {
     Task[] queue;
     int front;
     int rear;
-    private static final int INITIAL_CAPACITY = 10;
+    
 
     public TaskQueue() {
         // It's safer to use an initial capacity larger than 10 for real use
-        queue = new Task[INITIAL_CAPACITY];
+        queue = new Task[10];
         front = -1;
         rear = -1;
     }
@@ -24,15 +24,13 @@ public class TaskQueue {
         return (rear + 1) % queue.length == front;
     }
 
-    /**
-     * Helper method to resize the queue when it becomes full (doubles capacity).
-     */
+  
     private void resize() {
         int oldSize = queue.length;
         Task[] newQueue = new Task[oldSize * 2];
         int currentSize = size();
         
-        // Copy elements from front to rear into the new array
+      
         for (int i = 0; i < currentSize; i++) {
             newQueue[i] = queue[(front + i) % oldSize];
         }
@@ -42,10 +40,10 @@ public class TaskQueue {
         rear = currentSize - 1;
     }
 
-    // UPDATED: Now supports resizing when full
+
     public boolean enqueue(Task obj) {
         if (isFull()) {
-            resize(); // Resize the array instead of just failing
+            resize(); 
         } 
         
         if (isEmpty()) {
@@ -57,8 +55,7 @@ public class TaskQueue {
         queue[rear] = obj;
         return true;
     }
-
-    // UPDATED: Returns the dequeued Task object
+  
     public Task dequeue() {
         if (isEmpty()) {
             System.out.println("Queue is empty");
@@ -68,7 +65,6 @@ public class TaskQueue {
             queue[front] = null;
             
             if (front == rear) {
-                // Queue becomes empty
                 front = -1;
                 rear = -1;
             } else {
@@ -78,12 +74,6 @@ public class TaskQueue {
         }
     }
 
-    /**
-     * NEW: Searches the queue for a task by its ID.
-     * This is required by TaskTableModel to prevent duplicate additions.
-     * @param id The ID of the task to find.
-     * @return The Task object if found, otherwise null.
-     */
     public Task findTask(int id) {
         if (isEmpty()) return null;
 
@@ -99,13 +89,6 @@ public class TaskQueue {
         return null;
     }
     
-    /**
-     * NEW: Removes a specific task from the queue by ID. 
-     * Necessary when a task is completed or deleted from the main list.
-     * This is inefficient in a circular array, but required for functionality.
-     * @param id The ID of the task to remove.
-     * @return true if the task was found and removed, false otherwise.
-     */
     public boolean removeTask(int id) {
         if (isEmpty()) return false;
 
@@ -140,7 +123,7 @@ public class TaskQueue {
         return removed;
     }
 
-    // NEW: Method to get all tasks in the queue for display
+
     public Task[] getAllTasks() {
         if (isEmpty()) {
             return new Task[0];
@@ -160,7 +143,7 @@ public class TaskQueue {
         return tasks;
     }
 
-    // NEW: Get the size of the queue
+
     public int size() {
         if (isEmpty()) {
             return 0;
@@ -172,7 +155,7 @@ public class TaskQueue {
         }
     }
 
-    // NEW: Peek at the front element without removing it
+
     public Task peek() {
         if (isEmpty()) {
             return null;

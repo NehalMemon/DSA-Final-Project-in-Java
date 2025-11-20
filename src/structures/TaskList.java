@@ -14,7 +14,6 @@ public class TaskList {
         return head == null;
     }
 
-    // Original method - creates task with all parameters
     public void createTask(int id, String title, String description, Task.Priority priority, Task.Status status,
             String deadline) {
         Task newTask = new Task(id, title, description, priority, status, deadline);
@@ -29,22 +28,21 @@ public class TaskList {
         }
     }
 
-    // NEW: Overloaded method to accept Task object directly (needed for undo operation)
     public void createTask(Task task) {
         if (isEmpty()) {
             head = task;
-            task.next = null; // Ensure the task's next is null when added
+            task.next = null; 
         } else {
             Task current = head;
             while (current.next != null) {
                 current = current.next;
             }
             current.next = task;
-            task.next = null; // Ensure no dangling references
+            task.next = null; 
         }
     }
 
-    public boolean deleteTask(int id) {
+    public  boolean deleteTask(int id) {
         if (isEmpty()) {
             return false;
         }
@@ -67,11 +65,21 @@ public class TaskList {
         return true;
     }
 
-    // FIXED: Simplified the logic
     public Task findTask(int id) {
         Task current = head;
         while (current != null) {
             if (current.getId() == id) {
+                return current;
+            }
+            current = current.next;
+        }
+        return null;
+    }
+   
+    public Task searchByTitle(String task) {
+        Task current = head;
+        while (current != null) {
+            if (current.getTitle().equalsIgnoreCase(task)) {
                 return current;
             }
             current = current.next;
@@ -88,7 +96,6 @@ public class TaskList {
         return false;
     }
 
-    // FIXED: Added title to output
     public void displayTasks() {
         Task current = head;
         while (current != null) {

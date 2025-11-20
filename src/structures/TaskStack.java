@@ -36,10 +36,16 @@ public class TaskStack {
        return poppedTask;
     }
 
-    public List<Task> getTasks(){
-        List<Task> displayList = new ArrayList<>(size());
+    public Task[] getTasks(){
+        if(size()==0){
+            return new Task[0];
+        }
+        Task[] displayList = new Task[size()];
+        int index = 0;
+
         for(int i = top; i >= 0; i--){
-            displayList.add(stack[i]);
+          displayList[index] = stack[i];
+          index ++;
         }
         return displayList;
     }
